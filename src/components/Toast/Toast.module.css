@@ -15,6 +15,15 @@
   text-align: center;
 }
 
+/* Prevent mobile browsers from auto-linking email addresses and style any auto-generated links */
+.toast a {
+  color: inherit;
+  text-decoration: none;
+  pointer-events: none;
+  /* Prevent iOS Safari from styling auto-detected links */
+  -webkit-tap-highlight-color: transparent;
+}
+
 .toast.success {
   background: #22c55e;
 }
