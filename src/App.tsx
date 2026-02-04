@@ -13,8 +13,11 @@ function App() {
         <h1 className={styles.title}>eDNA Expeditions sample submission</h1>
       </header>
       <main className={styles.main}>
-        <SyncStatus onError={(message) => showToast(message, 'error', 6000)} />
-        <SampleForm onSuccess={() => showToast('Sample submitted successfully!', 'success')} />
+        <SyncStatus 
+          onError={(message) => showToast(message, 'error', 6000)} 
+          onSuccess={(count) => showToast(`${count} sample${count > 1 ? 's' : ''} synced successfully!`, 'success')} 
+        />
+        <SampleForm onSuccess={() => showToast('Sample queued successfully!', 'success')} />
       </main>
       {toast && (
         <Toast

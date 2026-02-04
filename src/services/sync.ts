@@ -62,7 +62,7 @@ export async function syncSamples(): Promise<SyncResult> {
         synced: 0,
         error: { 
           status, 
-          message: `Sync failed (${status}): ${response.statusText || 'Unknown error'}, please get in touch if the error persists` 
+          message: `Sync failed (${status}): ${response.statusText || 'Unknown error'}, please get in contact helpdesk@obis.org if the error persists.` 
         }
       };
     }

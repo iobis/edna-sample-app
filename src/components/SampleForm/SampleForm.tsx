@@ -149,7 +149,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         />
       </TextField>
 
-      <TextField id="volumeFiltered" label="Volume Filtered (milliliters)" error={errors.volumeFiltered?.message}>
+      <TextField id="volumeFiltered" label="Volume Filtered (milliliters)" error={errors.volumeFiltered?.message} required>
         <TextFieldInput
           id="volumeFiltered"
           type="number"
@@ -158,6 +158,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
           step="1"
           min="0"
           {...register('volumeFiltered', {
+            required: 'Volume filtered is required',
             validate: (value) => {
               if (value !== undefined && value !== null && value < 0) {
                 return 'Volume must be positive';
