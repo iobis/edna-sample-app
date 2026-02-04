@@ -47,18 +47,6 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
     return () => clearInterval(interval);
   }, [updateStats]);
 
-  // Auto-sync when coming online
-  useEffect(() => {
-    if (!isOffline && !isSyncingRef.current) {
-      // When coming online, update stats and try to sync (only if not already syncing)
-      updateStats();
-      performSync();
-    } else {
-      // When going offline, update stats to reflect current state
-      updateStats();
-    }
-  }, [isOffline, updateStats, performSync]);
-
   // Auto-sync when a new sample is queued (queued count increases)
   useEffect(() => {
     // Only sync if:
