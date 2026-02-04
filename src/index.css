@@ -34,7 +34,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
 }
 
@@ -49,5 +49,13 @@ button {
 
 input, textarea, select {
   font-family: inherit;
+}
+
+/* Prevent datetime-local input from overflowing on mobile */
+input[type="datetime-local"] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  -webkit-appearance: none;
 }
 
