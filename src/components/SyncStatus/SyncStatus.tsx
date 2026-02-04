@@ -57,8 +57,7 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
       // When going offline, update stats to reflect current state
       updateStats();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOffline]);
+  }, [isOffline, updateStats, performSync]);
 
   // Auto-sync when a new sample is queued (queued count increases)
   useEffect(() => {
@@ -67,20 +66,12 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
     // - Not already syncing
     // - Queued count increased (new sample was added)
     // - There are actually queued samples
-    const queuedIncreased = stats.queued > previousQueuedRef.current;
-    
-    if (!isOffline && !isSyncingRef.current && queuedIncreased && stats.queued > 0) {
-      // Update ref BEFORE syncing to prevent re-triggering
-      previousQueuedRef.current = stats.queued;
+    if (!isOffline && !isSyncingRef.current && stats.queued > previousQueuedRef.current && stats.queued > 0) {
       performSync();
-    } else {
-      // Update ref even if we don't sync, but only if count changed
-      if (stats.queued !== previousQueuedRef.current) {
-        previousQueuedRef.current = stats.queued;
-      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stats.queued, isOffline]);
+    // Update the ref to track the previous queued count
+    previousQueuedRef.current = stats.queued;
+  }, [stats.queued, isOffline, performSync]);
 
   const handleSync = async () => {
     await performSync();
