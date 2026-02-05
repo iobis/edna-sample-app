@@ -6,6 +6,8 @@ import { calculateUncertainty } from '../../services/location';
 import { useSamples } from '../../hooks/useSamples';
 import { MapView } from '../MapView/MapView';
 import { TextField, TextFieldInput, TextFieldTextarea } from '../ui/TextField';
+import { ImageCapture } from '../ImageCapture/ImageCapture';
+import { saveImage } from '../../services/images';
 import styles from './SampleForm.module.css';
 
 interface SampleFormProps {
@@ -16,6 +18,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
   const { location, loading: locationLoading, error: locationError, refresh: refreshLocation } = useLocation();
   const { createSample } = useSamples();
   const [submitting, setSubmitting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const {
     register,
@@ -56,7 +59,18 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
     setSubmitting(true);
 
     try {
-      await createSample(data);
+      // Create sample first to get the sampleId
+      const sample = await createSample(data);
+      
+      // If an image was selected, save it to IndexedDB
+      if (selectedImage) {
+        try {
+          await saveImage(sample.sampleId, selectedImage);
+        } catch (imageError) {
+          console.error('Error saving image:', imageError);
+          // Continue even if image save fails - sample is already created
+        }
+      }
       
       // Preserve contact and locality, clear sample ID, volume, and remarks
       reset({
@@ -70,6 +84,9 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         remarks: undefined,
         coordinateUncertainty: undefined,
       });
+      
+      // Clear selected image
+      setSelectedImage(null);
       
       // Refresh location for next sample
       if (location) {
@@ -311,6 +328,11 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
           rows={4}
         />
       </TextField>
+
+      <ImageCapture
+        onImageChange={setSelectedImage}
+        value={selectedImage}
+      />
 
       <button
         type="submit"

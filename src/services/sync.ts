@@ -5,6 +5,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 export interface SyncStats {
   synced: number;
   queued: number;
+  syncedImages: number;
+  queuedImages: number;
 }
 
 export async function getSyncStats(): Promise<SyncStats> {
@@ -12,7 +14,11 @@ export async function getSyncStats(): Promise<SyncStats> {
   const synced = allSamples.filter(s => s.synced).length;
   const queued = allSamples.filter(s => !s.synced).length;
   
-  return { synced, queued };
+  const allImages = await db.images.toArray();
+  const syncedImages = allImages.filter(img => img.synced).length;
+  const queuedImages = allImages.filter(img => !img.synced).length;
+  
+  return { synced, queued, syncedImages, queuedImages };
 }
 
 export interface SyncResult {

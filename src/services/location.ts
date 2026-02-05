@@ -20,6 +20,20 @@ export async function getCurrentLocation(): Promise<LocationData> {
       return;
     }
 
+    // Check if we're in a secure context (HTTPS or localhost)
+    const isSecureContext = window.isSecureContext || 
+                            window.location.protocol === 'https:' || 
+                            window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1';
+
+    if (!isSecureContext) {
+      reject({
+        code: 0,
+        message: 'Geolocation requires HTTPS. Please use HTTPS or access via localhost. You can enter coordinates manually.'
+      });
+      return;
+    }
+
     const options: PositionOptions = {
       enableHighAccuracy: true,
       timeout: 10000,
@@ -36,9 +50,20 @@ export async function getCurrentLocation(): Promise<LocationData> {
         });
       },
       (error) => {
+        let message = error.message;
+        
+        // Provide more helpful error messages
+        if (error.code === 1) {
+          message = 'Location permission denied. Please enable location access in your browser settings and try again.';
+        } else if (error.code === 2) {
+          message = 'Location unavailable. Please check your GPS settings and try again.';
+        } else if (error.code === 3) {
+          message = 'Location request timed out. Please try again.';
+        }
+        
         reject({
           code: error.code,
-          message: error.message
+          message
         });
       },
       options

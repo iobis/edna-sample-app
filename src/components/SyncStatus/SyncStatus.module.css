@@ -45,8 +45,9 @@
 }
 
 .stats {
-  display: flex;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
   padding-top: 0.75rem;
   border-top: 1px solid #f3f4f6;
 }
@@ -112,11 +113,15 @@
   }
 
   .stats {
-    gap: 1.5rem;
+    gap: 1rem;
   }
 
   .statValue {
     font-size: 1.25rem;
+  }
+
+  .statLabel {
+    font-size: 0.6875rem;
   }
 }
 

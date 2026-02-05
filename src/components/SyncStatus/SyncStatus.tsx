@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSyncStats, syncSamples, SyncStats } from '../../services/sync';
+import { syncAllImages } from '../../services/imageSync';
 import { useOffline } from '../../hooks/useOffline';
 import styles from './SyncStatus.module.css';
 
@@ -9,7 +10,7 @@ interface SyncStatusProps {
 }
 
 export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
-  const [stats, setStats] = useState<SyncStats>({ synced: 0, queued: 0 });
+  const [stats, setStats] = useState<SyncStats>({ synced: 0, queued: 0, syncedImages: 0, queuedImages: 0 });
   const [syncing, setSyncing] = useState(false);
   const isOffline = useOffline();
   const previousQueuedRef = useRef<number>(0);
@@ -26,15 +27,31 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
     isSyncingRef.current = true;
     setSyncing(true);
     try {
+      // Sync samples first
       const result = await syncSamples();
       await updateStats();
+      
+      // Then sync images
+      const imageResult = await syncAllImages();
+      
+      // Report success/error for samples
       if (result.success && result.synced > 0 && onSuccess) {
         onSuccess(result.synced);
       } else if (!result.success && result.error && onError) {
         onError(result.error.message);
       }
+      
+      // Report image sync errors if any
+      if (!imageResult.success && imageResult.error && imageResult.synced === 0 && onError) {
+        onError(imageResult.error.message);
+      } else if (imageResult.success && imageResult.synced > 0 && onSuccess) {
+        // Optionally show success for images too, but don't duplicate if samples also succeeded
+        if (!result.success || result.synced === 0) {
+          onSuccess(imageResult.synced);
+        }
+      }
     } catch (error) {
-      // Silently fail - error handling is done in syncSamples
+      // Silently fail - error handling is done in syncSamples and syncAllImages
     } finally {
       isSyncingRef.current = false;
       setSyncing(false);
@@ -74,7 +91,7 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
             {isOffline ? 'Offline' : 'Online'}
           </span>
         </div>
-        {!isOffline && stats.queued > 0 && (
+        {!isOffline && (stats.queued > 0 || stats.queuedImages > 0) && (
           <button
             onClick={handleSync}
             disabled={syncing}
@@ -87,11 +104,19 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
       <div className={styles.stats}>
         <div className={styles.stat}>
           <span className={styles.statValue}>{stats.synced}</span>
-          <span className={styles.statLabel}>Synced</span>
+          <span className={styles.statLabel}>Synced Records</span>
         </div>
         <div className={`${styles.stat} ${stats.queued > 0 ? styles.statQueued : ''}`}>
           <span className={styles.statValue}>{stats.queued}</span>
-          <span className={styles.statLabel}>Queued</span>
+          <span className={styles.statLabel}>Queued Records</span>
+        </div>
+        <div className={styles.stat}>
+          <span className={styles.statValue}>{stats.syncedImages}</span>
+          <span className={styles.statLabel}>Synced Images</span>
+        </div>
+        <div className={`${styles.stat} ${stats.queuedImages > 0 ? styles.statQueued : ''}`}>
+          <span className={styles.statValue}>{stats.queuedImages}</span>
+          <span className={styles.statLabel}>Queued Images</span>
         </div>
       </div>
     </div>

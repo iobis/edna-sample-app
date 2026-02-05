@@ -11,6 +11,7 @@ export interface Sample {
   longitude: number;
   latitude: number;
   coordinateUncertainty: number; // meters
+  imageId?: string; // Optional reference to associated image
   synced: boolean; // track sync status
   createdAt: Date;
   updatedAt: Date;
@@ -28,5 +29,18 @@ export interface SampleFormData {
   longitude: number;
   latitude: number;
   coordinateUncertainty: number;
+  imageFile?: File; // Optional image file for upload
+}
+
+export interface SampleImage {
+  id: string; // UUID
+  sampleId: string; // Links to Sample.sampleId (official ID)
+  blob: Blob;
+  filename: string;
+  mimeType: string;
+  size: number; // bytes
+  synced: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
