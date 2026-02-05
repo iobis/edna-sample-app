@@ -94,10 +94,23 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
     setValue('longitude', roundedLng);
   };
 
-  // Normalize number input: convert commas to dots
-  const normalizeNumberInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/,/g, '.');
-    e.target.value = value;
+  // Normalize number input: convert commas to dots and update form state
+  const normalizeNumberInput = (e: React.ChangeEvent<HTMLInputElement> | React.FormEvent<HTMLInputElement>) => {
+    const fieldName = e.currentTarget.name as keyof SampleFormData;
+    const originalValue = e.currentTarget.value;
+    const normalizedValue = originalValue.replace(/,/g, '.');
+    
+    // Update the input field value immediately
+    if (normalizedValue !== originalValue) {
+      e.currentTarget.value = normalizedValue;
+      // Also update react-hook-form state
+      setValue(fieldName, normalizedValue as any, { shouldValidate: false });
+    }
+  };
+
+  // Handle input event (fires before validation) to catch commas immediately
+  const handleNumberInput = (e: React.FormEvent<HTMLInputElement>) => {
+    normalizeNumberInput(e);
   };
 
   return (
@@ -210,7 +223,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
 
         {locationError && (
           <div className={styles.errorMessage}>
-            Location error: {locationError.message}. Please enter coordinates manually.
+            Location error, please enter coordinates manually or refresh GPS.
           </div>
         )}
 
@@ -229,6 +242,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
                 valueAsNumber: true,
                 onChange: normalizeNumberInput,
               })}
+              onInput={handleNumberInput}
               placeholder="0.00000"
             />
           </TextField>
@@ -247,6 +261,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
                 valueAsNumber: true,
                 onChange: normalizeNumberInput,
               })}
+              onInput={handleNumberInput}
               placeholder="0.00000"
             />
           </TextField>
@@ -265,12 +280,18 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
                 valueAsNumber: true,
                 onChange: normalizeNumberInput,
               })}
+              onInput={handleNumberInput}
               placeholder="50"
             />
           </TextField>
         </div>
 
-        {latitude && longitude && uncertainty && (
+        {typeof latitude === 'number' && 
+         typeof longitude === 'number' && 
+         typeof uncertainty === 'number' &&
+         !isNaN(latitude) && 
+         !isNaN(longitude) && 
+         !isNaN(uncertainty) && (
           <MapView
             latitude={latitude}
             longitude={longitude}
