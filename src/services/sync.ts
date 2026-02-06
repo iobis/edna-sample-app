@@ -44,12 +44,46 @@ export async function syncSamples(): Promise<SyncResult> {
   }
 
   try {
-    // Prepare samples for API (exclude internal fields)
+    // Prepare samples for API (exclude internal fields, convert to snake_case)
     const samplesToSync = unsyncedSamples.map(sample => {
-      const { id, synced, createdAt, updatedAt, ...sampleData } = sample;
+      const {
+        id,
+        synced,
+        createdAt,
+        updatedAt,
+        sampleId,
+        contactName,
+        contactEmail,
+        dateTime,
+        volumeFiltered,
+        waterTemperature,
+        remarks,
+        environmentRemarks,
+        replicate,
+        site,
+        locality,
+        longitude,
+        latitude,
+        coordinateUncertainty,
+        imageId,
+      } = sample;
+
       return {
-        ...sampleData,
-        dateTime: sample.dateTime.toISOString()
+        sample_id: sampleId,
+        contact_name: contactName,
+        contact_email: contactEmail,
+        date_time: dateTime.toISOString(),
+        volume_filtered: volumeFiltered ?? null,
+        water_temperature: waterTemperature ?? null,
+        remarks: remarks ?? null,
+        environment_remarks: environmentRemarks ?? null,
+        replicate: replicate ?? null,
+        site: site ?? null,
+        locality: locality ?? null,
+        longitude,
+        latitude,
+        coordinate_uncertainty: coordinateUncertainty,
+        image_id: imageId ?? null,
       };
     });
 
