@@ -7,6 +7,9 @@ export interface Sample {
   volumeFiltered?: number; // milliliters
   waterTemperature?: number; // Celsius
   remarks?: string;
+  environmentRemarks?: string;
+  replicate?: number;
+  site?: string;
   locality?: string;
   longitude: number;
   latitude: number;
@@ -25,6 +28,9 @@ export interface SampleFormData {
   volumeFiltered?: number;
   waterTemperature?: number;
   remarks?: string;
+  environmentRemarks?: string;
+  replicate?: number;
+  site?: string;
   locality?: string;
   longitude: number;
   latitude: number;

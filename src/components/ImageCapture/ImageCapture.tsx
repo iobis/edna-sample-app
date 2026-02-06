@@ -84,7 +84,6 @@ export function ImageCapture({ onImageChange, value }: ImageCaptureProps) {
 
   return (
     <div className={styles.imageCapture}>
-      <label className={styles.label}>Field Sampling Sheet Photo</label>
       <div className={styles.container}>
         {preview ? (
           <div className={styles.previewContainer}>

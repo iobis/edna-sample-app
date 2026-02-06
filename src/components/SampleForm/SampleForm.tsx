@@ -72,7 +72,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         }
       }
       
-      // Preserve contact and locality, clear sample ID, volume, and remarks
+      // Preserve contact and locality, clear sample ID, volume, and comments
       reset({
         contactName: data.contactName,
         contactEmail: data.contactEmail,
@@ -82,6 +82,8 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         volumeFiltered: undefined,
         waterTemperature: undefined,
         remarks: undefined,
+        environmentRemarks: undefined,
+        replicate: undefined,
         coordinateUncertainty: undefined,
       });
       
@@ -132,207 +134,264 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-      <h2 className={styles.title}>Sample Metadata</h2>
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Contact information</h2>
 
-      <TextField id="sampleId" label="Sample ID" error={errors.sampleId?.message} required>
-        <TextFieldInput
-          id="sampleId"
-          {...register('sampleId', {
-            required: 'Sample ID is required',
-          })}
-          placeholder="Enter sample ID from kit"
-        />
-      </TextField>
-
-      <TextField id="contactName" label="Contact Name" error={errors.contactName?.message} required>
-        <TextFieldInput
-          id="contactName"
-          {...register('contactName', {
-            required: 'Contact name is required',
-          })}
-          placeholder="Your name"
-        />
-      </TextField>
-
-      <TextField id="contactEmail" label="Contact Email" error={errors.contactEmail?.message} required>
-        <TextFieldInput
-          id="contactEmail"
-          type="email"
-          {...register('contactEmail', {
-            required: 'Email is required',
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: 'Invalid email address',
-            },
-          })}
-          placeholder="your.email@example.com"
-        />
-      </TextField>
-
-      <TextField id="dateTime" label="Date & Time" error={errors.dateTime?.message} required>
-        <TextFieldInput
-          id="dateTime"
-          type="datetime-local"
-          {...register('dateTime', {
-            required: 'Date and time are required',
-          })}
-        />
-      </TextField>
-
-      <TextField id="volumeFiltered" label="Volume Filtered (milliliters)" error={errors.volumeFiltered?.message} required>
-        <TextFieldInput
-          id="volumeFiltered"
-          type="number"
-          lang="en"
-          inputMode="numeric"
-          step="1"
-          min="0"
-          {...register('volumeFiltered', {
-            required: 'Volume filtered is required',
-            validate: (value) => {
-              if (value !== undefined && value !== null && value < 0) {
-                return 'Volume must be positive';
-              }
-              return true;
-            },
-            valueAsNumber: true,
-            onChange: normalizeNumberInput,
-          })}
-          placeholder="0"
-        />
-      </TextField>
-
-      <TextField id="waterTemperature" label="Water Temperature (°C)" error={errors.waterTemperature?.message}>
-        <TextFieldInput
-          id="waterTemperature"
-          type="number"
-          lang="en"
-          inputMode="decimal"
-          step="0.1"
-          {...register('waterTemperature', {
-            valueAsNumber: true,
-            onChange: normalizeNumberInput,
-          })}
-          placeholder=""
-        />
-      </TextField>
-
-      <TextField id="locality" label="Locality" error={errors.locality?.message}>
-        <TextFieldInput
-          id="locality"
-          {...register('locality')}
-          placeholder="Location description"
-        />
-      </TextField>
-
-      <div className={styles.locationSection}>
-        <div className={styles.locationHeader}>
-          <label className={styles.sectionLabel}>Location</label>
-          <button
-            type="button"
-            onClick={refreshLocation}
-            disabled={locationLoading}
-            className={styles.refreshButton}
-          >
-            {locationLoading ? 'Getting location...' : 'Refresh GPS'}
-          </button>
-        </div>
-
-        {locationError && (
-          <div className={styles.errorMessage}>
-            Location error, please enter coordinates manually or refresh GPS.
-          </div>
-        )}
-
-        <div className={styles.coordinates}>
-          <TextField id="latitude" label="Latitude" error={errors.latitude?.message} required>
-            <TextFieldInput
-              id="latitude"
-              type="number"
-              lang="en"
-              inputMode="decimal"
-              step="0.00001"
-              {...register('latitude', {
-                required: 'Latitude is required',
-                min: { value: -90, message: 'Latitude must be between -90 and 90' },
-                max: { value: 90, message: 'Latitude must be between -90 and 90' },
-                valueAsNumber: true,
-                onChange: normalizeNumberInput,
-              })}
-              onInput={handleNumberInput}
-              placeholder="0.00000"
-            />
-          </TextField>
-
-          <TextField id="longitude" label="Longitude" error={errors.longitude?.message} required>
-            <TextFieldInput
-              id="longitude"
-              type="number"
-              lang="en"
-              inputMode="decimal"
-              step="0.00001"
-              {...register('longitude', {
-                required: 'Longitude is required',
-                min: { value: -180, message: 'Longitude must be between -180 and 180' },
-                max: { value: 180, message: 'Longitude must be between -180 and 180' },
-                valueAsNumber: true,
-                onChange: normalizeNumberInput,
-              })}
-              onInput={handleNumberInput}
-              placeholder="0.00000"
-            />
-          </TextField>
-
-          <TextField id="coordinateUncertainty" label="Uncertainty (m)" error={errors.coordinateUncertainty?.message} required>
-            <TextFieldInput
-              id="coordinateUncertainty"
-              type="number"
-              lang="en"
-              inputMode="numeric"
-              step="1"
-              min="0"
-              {...register('coordinateUncertainty', {
-                required: 'Uncertainty is required',
-                min: { value: 0, message: 'Uncertainty must be positive' },
-                valueAsNumber: true,
-                onChange: normalizeNumberInput,
-              })}
-              onInput={handleNumberInput}
-              placeholder="50"
-            />
-          </TextField>
-        </div>
-
-        {typeof latitude === 'number' && 
-         typeof longitude === 'number' && 
-         typeof uncertainty === 'number' &&
-         !isNaN(latitude) && 
-         !isNaN(longitude) && 
-         !isNaN(uncertainty) && (
-          <MapView
-            latitude={latitude}
-            longitude={longitude}
-            uncertainty={uncertainty}
-            onLocationChange={handleMapLocationChange}
-            editable={true}
+        <TextField id="contactName" label="Contact name" error={errors.contactName?.message} required>
+          <TextFieldInput
+            id="contactName"
+            {...register('contactName', {
+              required: 'Contact name is required',
+            })}
+            placeholder="Your name"
           />
-        )}
+        </TextField>
+
+        <TextField id="contactEmail" label="Contact email" error={errors.contactEmail?.message} required>
+          <TextFieldInput
+            id="contactEmail"
+            type="email"
+            {...register('contactEmail', {
+              required: 'Email is required',
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: 'Invalid email address',
+              },
+            })}
+            placeholder="your.email@example.com"
+          />
+        </TextField>
       </div>
 
-      <TextField id="remarks" label="Remarks" error={errors.remarks?.message}>
-        <p>Add any remarks on the sampling or the environment (habitat, sea state, water depth) here.</p>
-        <TextFieldTextarea
-          id="remarks"
-          {...register('remarks')}
-          placeholder="Additional remarks"
-          rows={4}
-        />
-      </TextField>
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Sample metadata</h2>
 
-      <ImageCapture
-        onImageChange={setSelectedImage}
-        value={selectedImage}
-      />
+        <TextField id="sampleId" label="Sample ID" error={errors.sampleId?.message} required>
+          <TextFieldInput
+            id="sampleId"
+            {...register('sampleId', {
+              required: 'Sample ID is required',
+            })}
+            placeholder="Enter sample ID from kit"
+          />
+        </TextField>
+
+        <TextField id="dateTime" label="Date & time" error={errors.dateTime?.message} required>
+          <TextFieldInput
+            id="dateTime"
+            type="datetime-local"
+            {...register('dateTime', {
+              required: 'Date and time are required',
+            })}
+          />
+        </TextField>
+
+        <TextField id="volumeFiltered" label="Volume filtered (milliliters)" error={errors.volumeFiltered?.message} required>
+          <TextFieldInput
+            id="volumeFiltered"
+            type="number"
+            lang="en"
+            inputMode="numeric"
+            step="1"
+            min="0"
+            {...register('volumeFiltered', {
+              required: 'Volume filtered is required',
+              validate: (value) => {
+                if (value !== undefined && value !== null && value < 0) {
+                  return 'Volume must be positive';
+                }
+                return true;
+              },
+              valueAsNumber: true,
+              onChange: normalizeNumberInput,
+            })}
+            placeholder="0"
+          />
+        </TextField>
+
+        <TextField id="site" label="Site or project" error={errors.site?.message}>
+          <p>If this sampling is part of a eDNA Expeditions sampling campaign or a project, add a standardized name for the site or project. For example "Aldabra Atoll" or "Scaglieri Bioblitz".</p>
+          <TextFieldInput
+            id="site"
+            {...register('site')}
+            placeholder="Site name"
+          />
+        </TextField>
+
+        <TextField id="locality" label="Locality" error={errors.locality?.message}>
+          <p>Add a standardized name for the sampling location, for example "Oyster Point", "Pigeon Reef".</p>
+          <TextFieldInput
+            id="locality"
+            {...register('locality')}
+            placeholder="Location description"
+          />
+        </TextField>
+
+        <TextField id="replicate" label="Replicate" error={errors.replicate?.message}>
+        <p>If you are taking multiple samples in the same location, select the replicate number for the sample. Use the same locality name and different replicate numbers for samples taken at the same location.</p>
+        <select
+            id="replicate"
+            className={styles.select}
+            defaultValue=""
+            {...register('replicate', {
+              setValueAs: (value) => (value === '' ? undefined : Number(value)),
+            })}
+          >
+            <option value="">Select replicate</option>
+            {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {`Replicate ${n}`}
+              </option>
+            ))}
+          </select>
+        </TextField>
+
+        <div className={styles.locationSection}>
+          <div className={styles.locationHeader}>
+            <label className={styles.sectionLabel}>Location</label>
+            <button
+              type="button"
+              onClick={refreshLocation}
+              disabled={locationLoading}
+              className={styles.refreshButton}
+            >
+              {locationLoading ? 'Getting location...' : 'Refresh GPS'}
+            </button>
+          </div>
+
+          {locationError && (
+            <div className={styles.errorMessage}>
+              Location error, please enter coordinates manually or refresh GPS.
+            </div>
+          )}
+
+          <div className={styles.coordinates}>
+            <TextField id="latitude" label="Latitude" error={errors.latitude?.message} required>
+              <TextFieldInput
+                id="latitude"
+                type="number"
+                lang="en"
+                inputMode="decimal"
+                step="0.00001"
+                {...register('latitude', {
+                  required: 'Latitude is required',
+                  min: { value: -90, message: 'Latitude must be between -90 and 90' },
+                  max: { value: 90, message: 'Latitude must be between -90 and 90' },
+                  valueAsNumber: true,
+                  onChange: normalizeNumberInput,
+                })}
+                onInput={handleNumberInput}
+                placeholder="0.00000"
+              />
+            </TextField>
+
+            <TextField id="longitude" label="Longitude" error={errors.longitude?.message} required>
+              <TextFieldInput
+                id="longitude"
+                type="number"
+                lang="en"
+                inputMode="decimal"
+                step="0.00001"
+                {...register('longitude', {
+                  required: 'Longitude is required',
+                  min: { value: -180, message: 'Longitude must be between -180 and 180' },
+                  max: { value: 180, message: 'Longitude must be between -180 and 180' },
+                  valueAsNumber: true,
+                  onChange: normalizeNumberInput,
+                })}
+                onInput={handleNumberInput}
+                placeholder="0.00000"
+              />
+            </TextField>
+
+            <TextField id="coordinateUncertainty" label="Uncertainty (m)" error={errors.coordinateUncertainty?.message} required>
+              <TextFieldInput
+                id="coordinateUncertainty"
+                type="number"
+                lang="en"
+                inputMode="numeric"
+                step="1"
+                min="0"
+                {...register('coordinateUncertainty', {
+                  required: 'Uncertainty is required',
+                  min: { value: 0, message: 'Uncertainty must be positive' },
+                  valueAsNumber: true,
+                  onChange: normalizeNumberInput,
+                })}
+                onInput={handleNumberInput}
+                placeholder="50"
+              />
+            </TextField>
+          </div>
+
+          {typeof latitude === 'number' && 
+           typeof longitude === 'number' && 
+           typeof uncertainty === 'number' &&
+           !isNaN(latitude) && 
+           !isNaN(longitude) && 
+           !isNaN(uncertainty) && (
+            <MapView
+              latitude={latitude}
+              longitude={longitude}
+              uncertainty={uncertainty}
+              onLocationChange={handleMapLocationChange}
+              editable={true}
+            />
+          )}
+        </div>
+
+        <TextField id="remarks" label="General comments" error={errors.remarks?.message}>
+          <p>Add any comments, for example if you experienced any difficulties with the sampling.</p>
+          <TextFieldTextarea
+            id="remarks"
+            {...register('remarks')}
+            placeholder="General comments"
+            rows={3}
+          />
+        </TextField>
+      </div>
+
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Environment</h2>
+
+        <TextField id="waterTemperature" label="Water temperature (°C)" error={errors.waterTemperature?.message}>
+          <TextFieldInput
+            id="waterTemperature"
+            type="number"
+            lang="en"
+            inputMode="decimal"
+            step="0.1"
+            {...register('waterTemperature', {
+              valueAsNumber: true,
+              onChange: normalizeNumberInput,
+            })}
+            placeholder=""
+          />
+        </TextField>
+
+        <TextField
+          id="environmentRemarks"
+          label="Environment description"
+          error={errors.environmentRemarks?.message}
+        >
+          <p>Describe the environment, this can include the habitat type, sea state, water depth, weather, etc.</p>
+          <TextFieldTextarea
+            id="environmentRemarks"
+            {...register('environmentRemarks')}
+            placeholder="Describe the environment"
+            rows={3}
+          />
+        </TextField>
+      </div>
+
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Sampling sheet</h2>
+
+        <ImageCapture
+          onImageChange={setSelectedImage}
+          value={selectedImage}
+        />
+      </div>
 
       <button
         type="submit"
