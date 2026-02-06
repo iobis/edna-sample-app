@@ -8,6 +8,7 @@ import { MapView } from '../MapView/MapView';
 import { TextField, TextFieldInput, TextFieldTextarea } from '../ui/TextField';
 import { ImageCapture } from '../ImageCapture/ImageCapture';
 import { saveImage } from '../../services/images';
+import { db } from '../../services/db';
 import styles from './SampleForm.module.css';
 
 interface SampleFormProps {
@@ -19,6 +20,8 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
   const { createSample } = useSamples();
   const [submitting, setSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [siteSuggestions, setSiteSuggestions] = useState<string[]>([]);
+  const [localitySuggestions, setLocalitySuggestions] = useState<string[]>([]);
 
   const {
     register,
@@ -55,6 +58,33 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
     }
   }, [location, setValue]);
 
+  // Load site and locality suggestions from existing samples
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      try {
+        const samples = await db.samples.toArray();
+        const siteSet = new Set<string>();
+        const localitySet = new Set<string>();
+
+        for (const sample of samples) {
+          if (sample.site) {
+            siteSet.add(sample.site);
+          }
+          if (sample.locality) {
+            localitySet.add(sample.locality);
+          }
+        }
+
+        setSiteSuggestions(Array.from(siteSet).sort());
+        setLocalitySuggestions(Array.from(localitySet).sort());
+      } catch (error) {
+        console.error('Error loading site/locality suggestions:', error);
+      }
+    };
+
+    loadSuggestions();
+  }, []);
+
   const onSubmit = async (data: SampleFormData) => {
     setSubmitting(true);
 
@@ -72,20 +102,33 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         }
       }
       
-      // Preserve contact and locality, clear sample ID, volume, and comments
+      // Preserve contact, site, and locality, clear sample ID, volume, replicate, temperature, and comments
       reset({
         contactName: data.contactName,
         contactEmail: data.contactEmail,
+        site: data.site,
         locality: data.locality,
         dateTime: new Date().toISOString().slice(0, 16),
         sampleId: '',
-        volumeFiltered: undefined,
-        waterTemperature: undefined,
-        remarks: undefined,
-        environmentRemarks: undefined,
-        replicate: undefined,
+        volumeFiltered: '' as any,
+        waterTemperature: '' as any,
+        remarks: '',
+        environmentRemarks: '',
+        replicate: '' as any,
         coordinateUncertainty: undefined,
       });
+
+      // Update in-memory suggestions with newly used values
+      if (data.site) {
+        setSiteSuggestions((prev) =>
+          prev.includes(data.site!) ? prev : [...prev, data.site!].sort()
+        );
+      }
+      if (data.locality) {
+        setLocalitySuggestions((prev) =>
+          prev.includes(data.locality!) ? prev : [...prev, data.locality!].sort()
+        );
+      }
       
       // Clear selected image
       setSelectedImage(null);
@@ -94,6 +137,9 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
       if (location) {
         refreshLocation();
       }
+      
+      // Scroll to top of page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
       // Show success toast
       onSuccess?.();
@@ -213,18 +259,34 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
           <p>If this sampling is part of a eDNA Expeditions sampling campaign or a project, add a standardized name for the site or project. For example "Aldabra Atoll" or "Scaglieri Bioblitz".</p>
           <TextFieldInput
             id="site"
+            list="site-suggestions"
             {...register('site')}
             placeholder="Site name"
           />
+          {siteSuggestions.length > 0 && (
+            <datalist id="site-suggestions">
+              {siteSuggestions.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+          )}
         </TextField>
 
         <TextField id="locality" label="Locality" error={errors.locality?.message}>
           <p>Add a standardized name for the sampling location, for example "Oyster Point", "Pigeon Reef".</p>
           <TextFieldInput
             id="locality"
+            list="locality-suggestions"
             {...register('locality')}
             placeholder="Location description"
           />
+          {localitySuggestions.length > 0 && (
+            <datalist id="locality-suggestions">
+              {localitySuggestions.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+          )}
         </TextField>
 
         <TextField id="replicate" label="Replicate" error={errors.replicate?.message}>
