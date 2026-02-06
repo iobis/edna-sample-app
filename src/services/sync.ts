@@ -47,10 +47,6 @@ export async function syncSamples(): Promise<SyncResult> {
     // Prepare samples for API (exclude internal fields, convert to snake_case)
     const samplesToSync = unsyncedSamples.map(sample => {
       const {
-        id,
-        synced,
-        createdAt,
-        updatedAt,
         sampleId,
         contactName,
         contactEmail,
