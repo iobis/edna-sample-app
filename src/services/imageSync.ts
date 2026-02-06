@@ -96,4 +96,3 @@ export async function syncAllImages(): Promise<ImageSyncResult> {
     error: syncedCount === 0 ? lastError : undefined,
   };
 }
-

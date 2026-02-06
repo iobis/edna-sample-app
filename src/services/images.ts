@@ -67,4 +67,3 @@ export async function markImageAsSynced(imageId: string): Promise<void> {
     updatedAt: new Date() 
   });
 }
-

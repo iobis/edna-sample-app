@@ -125,4 +125,3 @@ export function ImageCapture({ onImageChange, value }: ImageCaptureProps) {
     </div>
   );
 }
-
