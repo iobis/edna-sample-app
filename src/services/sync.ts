@@ -1,6 +1,6 @@
 import { db } from './db';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://platform.ednaexpeditions.org/api';
 
 export interface SyncStats {
   synced: number;
@@ -19,6 +19,11 @@ export async function getSyncStats(): Promise<SyncStats> {
   const queuedImages = allImages.filter(img => !img.synced).length;
   
   return { synced, queued, syncedImages, queuedImages };
+}
+
+export async function clearAllData(): Promise<void> {
+  await db.samples.clear();
+  await db.images.clear();
 }
 
 export interface SyncResult {

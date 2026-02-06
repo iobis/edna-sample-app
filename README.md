@@ -25,11 +25,13 @@ npm run build
 
 ## Environment Variables
 
-Create a `.env` file with:
+For local development, create a `.env` file to override the API endpoint:
 
 ```
-VITE_API_BASE_URL=http://localhost:3000/api
+VITE_API_BASE_URL=http://192.168.1.9:8000/api
 ```
+
+**Production**: The app defaults to `https://platform.ednaexpeditions.org/api` when no environment variable is set. For GitHub Pages deployment, set the `VITE_API_BASE_URL` secret in your repository settings.
 
 ## PWA Icons
 

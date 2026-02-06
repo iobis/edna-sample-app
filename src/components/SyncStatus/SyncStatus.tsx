@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getSyncStats, syncSamples, SyncStats } from '../../services/sync';
+import { getSyncStats, syncSamples, clearAllData, SyncStats } from '../../services/sync';
 import { syncAllImages } from '../../services/imageSync';
 import { useOffline } from '../../hooks/useOffline';
 import styles from './SyncStatus.module.css';
@@ -82,6 +82,29 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
     await performSync();
   };
 
+  const handleClearData = async () => {
+    const hasData =
+      stats.synced > 0 ||
+      stats.queued > 0 ||
+      stats.syncedImages > 0 ||
+      stats.queuedImages > 0;
+
+    if (!hasData) return;
+
+    const confirmed = window.confirm(
+      'This will delete all locally stored samples and images on this device. This cannot be undone. Continue?'
+    );
+    if (!confirmed) return;
+
+    try {
+      await clearAllData();
+      await updateStats();
+    } catch (error) {
+      console.error('Error clearing local data:', error);
+      onError?.('Failed to clear local data.');
+    }
+  };
+
   return (
     <div className={styles.syncStatus}>
       <div className={styles.header}>
@@ -91,15 +114,29 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
             {isOffline ? 'Offline' : 'Online'}
           </span>
         </div>
-        {!isOffline && (stats.queued > 0 || stats.queuedImages > 0) && (
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className={styles.syncButton}
-          >
-            {syncing ? 'Syncing...' : 'Sync'}
-          </button>
-        )}
+        <div className={styles.actions}>
+          {!isOffline && (stats.queued > 0 || stats.queuedImages > 0) && (
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className={styles.syncButton}
+            >
+              {syncing ? 'Syncing...' : 'Sync'}
+            </button>
+          )}
+          {(stats.synced > 0 ||
+            stats.queued > 0 ||
+            stats.syncedImages > 0 ||
+            stats.queuedImages > 0) && (
+            <button
+              type="button"
+              onClick={handleClearData}
+              className={styles.clearButton}
+            >
+              Clear data
+            </button>
+          )}
+        </div>
       </div>
       <div className={styles.stats}>
         <div className={styles.stat}>
