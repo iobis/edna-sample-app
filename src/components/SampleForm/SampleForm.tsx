@@ -214,13 +214,13 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Sample metadata</h2>
 
-        <TextField id="sampleId" label="Sample ID" error={errors.sampleId?.message} required>
+        <TextField id="sampleId" label="Kit number or sample ID" error={errors.sampleId?.message} required>
           <TextFieldInput
             id="sampleId"
             {...register('sampleId', {
               required: 'Sample ID is required',
             })}
-            placeholder="Enter sample ID from kit"
+            placeholder="Enter the kit number"
           />
         </TextField>
 
@@ -231,29 +231,6 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
             {...register('dateTime', {
               required: 'Date and time are required',
             })}
-          />
-        </TextField>
-
-        <TextField id="volumeFiltered" label="Volume filtered (milliliters)" error={errors.volumeFiltered?.message} required>
-          <TextFieldInput
-            id="volumeFiltered"
-            type="number"
-            lang="en"
-            inputMode="numeric"
-            step="1"
-            min="0"
-            {...register('volumeFiltered', {
-              required: 'Volume filtered is required',
-              validate: (value) => {
-                if (value !== undefined && value !== null && value < 0) {
-                  return 'Volume must be positive';
-                }
-                return true;
-              },
-              valueAsNumber: true,
-              onChange: normalizeNumberInput,
-            })}
-            placeholder="0"
           />
         </TextField>
 
@@ -289,6 +266,29 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
               ))}
             </datalist>
           )}
+        </TextField>
+
+        <TextField id="volumeFiltered" label="Volume filtered (milliliters)" error={errors.volumeFiltered?.message} required>
+          <TextFieldInput
+            id="volumeFiltered"
+            type="number"
+            lang="en"
+            inputMode="numeric"
+            step="1"
+            min="0"
+            {...register('volumeFiltered', {
+              required: 'Volume filtered is required',
+              validate: (value) => {
+                if (value !== undefined && value !== null && value < 0) {
+                  return 'Volume must be positive';
+                }
+                return true;
+              },
+              valueAsNumber: true,
+              onChange: normalizeNumberInput,
+            })}
+            placeholder="0"
+          />
         </TextField>
 
         <TextField id="replicate" label="Replicate" error={errors.replicate?.message}>
