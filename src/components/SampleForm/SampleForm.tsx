@@ -462,7 +462,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         disabled={submitting}
         className={styles.submitButton}
       >
-        {submitting ? 'Submitting...' : 'Submit Sample'}
+        {submitting ? 'Submitting...' : 'Submit sample'}
       </button>
     </form>
   );
