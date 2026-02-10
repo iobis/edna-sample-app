@@ -141,19 +141,19 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
       <div className={styles.stats}>
         <div className={styles.stat}>
           <span className={styles.statValue}>{stats.synced}</span>
-          <span className={styles.statLabel}>Synced Records</span>
+          <span className={styles.statLabel}>Synced samples</span>
         </div>
         <div className={`${styles.stat} ${stats.queued > 0 ? styles.statQueued : ''}`}>
           <span className={styles.statValue}>{stats.queued}</span>
-          <span className={styles.statLabel}>Queued Records</span>
+          <span className={styles.statLabel}>Queued samples</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statValue}>{stats.syncedImages}</span>
-          <span className={styles.statLabel}>Synced Images</span>
+          <span className={styles.statLabel}>Synced sheets</span>
         </div>
         <div className={`${styles.stat} ${stats.queuedImages > 0 ? styles.statQueued : ''}`}>
           <span className={styles.statValue}>{stats.queuedImages}</span>
-          <span className={styles.statLabel}>Queued Images</span>
+          <span className={styles.statLabel}>Queued sheets</span>
         </div>
       </div>
     </div>
