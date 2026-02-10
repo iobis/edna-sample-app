@@ -138,8 +138,10 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         refreshLocation();
       }
       
-      // Scroll to top of page
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Scroll to very top of page
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
       
       // Show success toast
       onSuccess?.();
