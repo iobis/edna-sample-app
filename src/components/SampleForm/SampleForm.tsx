@@ -457,6 +457,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
               valueAsNumber: true,
               onChange: normalizeNumberInput,
             })}
+            onInput={handleNumberInput}
             placeholder=""
           />
         </TextField>
