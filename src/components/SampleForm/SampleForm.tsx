@@ -253,12 +253,14 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
           />
         </TextField>
 
-        <TextField id="site" label="Site or project" error={errors.site?.message}>
+        <TextField id="site" label="Site or project" error={errors.site?.message} required>
           <p>If this sampling is part of a eDNA Expeditions sampling campaign or a project, add a standardized name for the site or project. For example "Aldabra Atoll" or "Scaglieri Bioblitz".</p>
           <TextFieldInput
             id="site"
             list="site-suggestions"
-            {...register('site')}
+            {...register('site', {
+              required: 'Site or project is required',
+            })}
             placeholder="Site name"
           />
           {siteSuggestions.length > 0 && (
@@ -270,12 +272,14 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
           )}
         </TextField>
 
-        <TextField id="locality" label="Locality" error={errors.locality?.message}>
+        <TextField id="locality" label="Locality" error={errors.locality?.message} required>
           <p>Add a standardized name for the sampling location, for example "Oyster Point", "Pigeon Reef".</p>
           <TextFieldInput
             id="locality"
             list="locality-suggestions"
-            {...register('locality')}
+            {...register('locality', {
+              required: 'Locality is required',
+            })}
             placeholder="Location description"
           />
           {localitySuggestions.length > 0 && (

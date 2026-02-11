@@ -9,8 +9,8 @@ export interface Sample {
   remarks?: string;
   environmentRemarks?: string;
   replicate?: number;
-  site?: string;
-  locality?: string;
+  site: string;
+  locality: string;
   longitude: number;
   latitude: number;
   coordinateUncertainty: number; // meters
@@ -30,8 +30,8 @@ export interface SampleFormData {
   remarks?: string;
   environmentRemarks?: string;
   replicate?: number;
-  site?: string;
-  locality?: string;
+  site: string;
+  locality: string;
   longitude: number;
   latitude: number;
   coordinateUncertainty: number;
