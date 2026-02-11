@@ -19,7 +19,8 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
   const { location, loading: locationLoading, error: locationError, refresh: refreshLocation } = useLocation();
   const { createSample } = useSamples();
   const [submitting, setSubmitting] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [bagImage, setBagImage] = useState<File | null>(null);
+  const [sheetImage, setSheetImage] = useState<File | null>(null);
   const [siteSuggestions, setSiteSuggestions] = useState<string[]>([]);
   const [localitySuggestions, setLocalitySuggestions] = useState<string[]>([]);
 
@@ -92,12 +93,21 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
       // Create sample first to get the sampleId
       const sample = await createSample(data);
       
-      // If an image was selected, save it to IndexedDB
-      if (selectedImage) {
+      // If images were selected, save them to IndexedDB
+      if (bagImage) {
         try {
-          await saveImage(sample.sampleId, selectedImage);
+          await saveImage(sample.sampleId, bagImage);
         } catch (imageError) {
-          console.error('Error saving image:', imageError);
+          console.error('Error saving bag image:', imageError);
+          // Continue even if image save fails - sample is already created
+        }
+      }
+
+      if (sheetImage) {
+        try {
+          await saveImage(sample.sampleId, sheetImage);
+        } catch (imageError) {
+          console.error('Error saving sheet image:', imageError);
           // Continue even if image save fails - sample is already created
         }
       }
@@ -130,8 +140,9 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         );
       }
       
-      // Clear selected image
-      setSelectedImage(null);
+      // Clear selected images
+      setBagImage(null);
+      setSheetImage(null);
       
       // Refresh location for next sample
       if (location) {
@@ -449,11 +460,20 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Sampling bag</h2>
-        <p>Take a photo of the sampling bag after completing the form on the bag.</p>
+        <h2 className={styles.sectionTitle}>Sampling sheet</h2>
+        <p>Take a photo of the completed sampling sheet.</p>
         <ImageCapture
-          onImageChange={setSelectedImage}
-          value={selectedImage}
+          onImageChange={setSheetImage}
+          value={sheetImage}
+        />
+      </div>
+
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Sampling bag</h2>
+        <p>Take a photo of the sampling bag form.</p>
+        <ImageCapture
+          onImageChange={setBagImage}
+          value={bagImage}
         />
       </div>
 
