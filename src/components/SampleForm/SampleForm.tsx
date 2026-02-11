@@ -449,15 +449,18 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         <TextField id="waterTemperature" label="Water temperature (°C)" error={errors.waterTemperature?.message}>
           <TextFieldInput
             id="waterTemperature"
-            type="number"
+            type="text"
             lang="en"
             inputMode="decimal"
             step="0.1"
             {...register('waterTemperature', {
-              valueAsNumber: true,
-              onChange: normalizeNumberInput,
+              setValueAs: (value) => {
+                if (value === '' || value === null || value === undefined) return undefined;
+                const normalized = String(value).replace(',', '.');
+                const num = Number(normalized);
+                return isNaN(num) ? undefined : num;
+              },
             })}
-            onInput={handleNumberInput}
             placeholder=""
           />
         </TextField>
