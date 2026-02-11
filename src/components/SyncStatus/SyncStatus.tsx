@@ -105,6 +105,11 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
     }
   };
 
+  const totalSamples = stats.synced + stats.queued;
+  const totalImages = stats.syncedImages + stats.queuedImages;
+  const samplesNotSynced = totalSamples > 0 && stats.synced < totalSamples;
+  const imagesNotSynced = totalImages > 0 && stats.syncedImages < totalImages;
+
   return (
     <div className={styles.syncStatus}>
       <div className={styles.header}>
@@ -139,21 +144,17 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
         </div>
       </div>
       <div className={styles.stats}>
-        <div className={styles.stat}>
-          <span className={styles.statValue}>{stats.synced}</span>
+        <div className={`${styles.stat} ${samplesNotSynced ? styles.statQueued : ''}`}>
+          <span className={styles.statValue}>
+            {stats.synced}/{totalSamples || 0}
+          </span>
           <span className={styles.statLabel}>Synced samples</span>
         </div>
-        <div className={`${styles.stat} ${stats.queued > 0 ? styles.statQueued : ''}`}>
-          <span className={styles.statValue}>{stats.queued}</span>
-          <span className={styles.statLabel}>Queued samples</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statValue}>{stats.syncedImages}</span>
+        <div className={`${styles.stat} ${imagesNotSynced ? styles.statQueued : ''}`}>
+          <span className={styles.statValue}>
+            {stats.syncedImages}/{totalImages || 0}
+          </span>
           <span className={styles.statLabel}>Synced pictures</span>
-        </div>
-        <div className={`${styles.stat} ${stats.queuedImages > 0 ? styles.statQueued : ''}`}>
-          <span className={styles.statValue}>{stats.queuedImages}</span>
-          <span className={styles.statLabel}>Queued pictures</span>
         </div>
       </div>
     </div>
