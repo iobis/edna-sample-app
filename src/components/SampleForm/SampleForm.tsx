@@ -30,6 +30,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
     formState: { errors },
     setValue,
     watch,
+    getValues,
     reset,
   } = useForm<SampleFormData>({
     defaultValues: {
@@ -191,6 +192,13 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
     normalizeNumberInput(e);
   };
 
+  const handleAddVolume = () => {
+    const current = getValues('volumeFiltered');
+    const base = typeof current === 'number' && !isNaN(current) ? current : 0;
+    const next = base + 50;
+    setValue('volumeFiltered', next, { shouldValidate: true, shouldDirty: true });
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
       <div className={styles.section}>
@@ -280,26 +288,35 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         </TextField>
 
         <TextField id="volumeFiltered" label="Volume filtered (milliliters)" error={errors.volumeFiltered?.message} required>
-          <TextFieldInput
-            id="volumeFiltered"
-            type="number"
-            lang="en"
-            inputMode="numeric"
-            step="1"
-            min="0"
-            {...register('volumeFiltered', {
-              required: 'Volume filtered is required',
-              validate: (value) => {
-                if (value !== undefined && value !== null && value < 0) {
-                  return 'Volume must be positive';
-                }
-                return true;
-              },
-              valueAsNumber: true,
-              onChange: normalizeNumberInput,
-            })}
-            placeholder="0"
-          />
+          <div className={styles.volumeRow}>
+            <TextFieldInput
+              id="volumeFiltered"
+              type="number"
+              lang="en"
+              inputMode="numeric"
+              step="1"
+              min="0"
+              {...register('volumeFiltered', {
+                required: 'Volume filtered is required',
+                validate: (value) => {
+                  if (value !== undefined && value !== null && value < 0) {
+                    return 'Volume must be positive';
+                  }
+                  return true;
+                },
+                valueAsNumber: true,
+                onChange: normalizeNumberInput,
+              })}
+              placeholder="0"
+            />
+            <button
+              type="button"
+              onClick={handleAddVolume}
+              className={styles.volumeButton}
+            >
+              +50&nbsp;ml
+            </button>
+          </div>
         </TextField>
 
         <TextField id="replicate" label="Replicate" error={errors.replicate?.message}>
