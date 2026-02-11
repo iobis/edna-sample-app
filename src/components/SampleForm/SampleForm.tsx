@@ -199,6 +199,13 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
     setValue('volumeFiltered', next, { shouldValidate: true, shouldDirty: true });
   };
 
+  const handleSubtractVolume = () => {
+    const current = getValues('volumeFiltered');
+    const base = typeof current === 'number' && !isNaN(current) ? current : 0;
+    const next = Math.max(0, base - 50); // Ensure it doesn't go below 0
+    setValue('volumeFiltered', next, { shouldValidate: true, shouldDirty: true });
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
       <div className={styles.section}>
@@ -319,6 +326,13 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
               className={styles.volumeButton}
             >
               +50&nbsp;ml
+            </button>
+            <button
+              type="button"
+              onClick={handleSubtractVolume}
+              className={styles.volumeButton}
+            >
+              -50&nbsp;ml
             </button>
           </div>
         </TextField>
