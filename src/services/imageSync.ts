@@ -25,6 +25,9 @@ export async function syncImage(image: SampleImage): Promise<ImageSyncResult> {
     const formData = new FormData();
     formData.append('image', image.blob, image.filename);
     formData.append('sampleId', image.sampleId);
+    if (image.submissionKey) {
+      formData.append('submission_key', image.submissionKey);
+    }
 
     // Upload to API endpoint
     // Using POST /api/images with sampleId in FormData (alternative approach)

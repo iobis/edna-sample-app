@@ -67,6 +67,7 @@ export async function syncSamples(): Promise<SyncResult> {
         latitude,
         coordinateUncertainty,
         imageId,
+        submissionKey,
       } = sample;
 
       return {
@@ -85,6 +86,7 @@ export async function syncSamples(): Promise<SyncResult> {
         latitude,
         coordinate_uncertainty: coordinateUncertainty,
         image_id: imageId ?? null,
+        submission_key: submissionKey ?? null,
       };
     });
 

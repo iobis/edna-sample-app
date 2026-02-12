@@ -9,6 +9,7 @@ import { TextField, TextFieldInput, TextFieldTextarea } from '../ui/TextField';
 import { ImageCapture } from '../ImageCapture/ImageCapture';
 import { saveImage } from '../../services/images';
 import { db } from '../../services/db';
+import { v4 as uuidv4 } from 'uuid';
 import styles from './SampleForm.module.css';
 
 interface SampleFormProps {
@@ -91,13 +92,14 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
     setSubmitting(true);
 
     try {
+      const submissionKey = uuidv4();
       // Create sample first to get the sampleId
-      const sample = await createSample(data);
+      const sample = await createSample(data, submissionKey);
       
       // If images were selected, save them to IndexedDB
       if (bagImage) {
         try {
-          await saveImage(sample.sampleId, bagImage);
+          await saveImage(sample.sampleId, bagImage, submissionKey);
         } catch (imageError) {
           console.error('Error saving bag image:', imageError);
           // Continue even if image save fails - sample is already created
@@ -106,7 +108,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
 
       if (sheetImage) {
         try {
-          await saveImage(sample.sampleId, sheetImage);
+          await saveImage(sample.sampleId, sheetImage, submissionKey);
         } catch (imageError) {
           console.error('Error saving sheet image:', imageError);
           // Continue even if image save fails - sample is already created
@@ -298,45 +300,6 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
           )}
         </TextField>
 
-        <TextField id="volumeFiltered" label="Volume filtered (milliliters)" error={errors.volumeFiltered?.message} required>
-          <div className={styles.volumeRow}>
-            <TextFieldInput
-              id="volumeFiltered"
-              type="number"
-              lang="en"
-              inputMode="numeric"
-              step="1"
-              min="0"
-              {...register('volumeFiltered', {
-                required: 'Volume filtered is required',
-                validate: (value) => {
-                  if (value !== undefined && value !== null && value < 0) {
-                    return 'Volume must be positive';
-                  }
-                  return true;
-                },
-                valueAsNumber: true,
-                onChange: normalizeNumberInput,
-              })}
-              placeholder="0"
-            />
-            <button
-              type="button"
-              onClick={handleAddVolume}
-              className={styles.volumeButton}
-            >
-              +50&nbsp;ml
-            </button>
-            <button
-              type="button"
-              onClick={handleSubtractVolume}
-              className={styles.volumeButton}
-            >
-              -50&nbsp;ml
-            </button>
-          </div>
-        </TextField>
-
         <TextField id="replicate" label="Replicate" error={errors.replicate?.message}>
         <p>If you are taking multiple samples in the same location, select the replicate number for the sample. Use the same locality name and different replicate numbers for samples taken at the same location.</p>
         <select
@@ -449,6 +412,45 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
             />
           )}
         </div>
+
+        <TextField id="volumeFiltered" label="Volume filtered (milliliters)" error={errors.volumeFiltered?.message} required>
+          <div className={styles.volumeRow}>
+            <TextFieldInput
+              id="volumeFiltered"
+              type="number"
+              lang="en"
+              inputMode="numeric"
+              step="1"
+              min="0"
+              {...register('volumeFiltered', {
+                required: 'Volume filtered is required',
+                validate: (value) => {
+                  if (value !== undefined && value !== null && value < 0) {
+                    return 'Volume must be positive';
+                  }
+                  return true;
+                },
+                valueAsNumber: true,
+                onChange: normalizeNumberInput,
+              })}
+              placeholder="0"
+            />
+            <button
+              type="button"
+              onClick={handleAddVolume}
+              className={styles.volumeButton}
+            >
+              +50&nbsp;ml
+            </button>
+            <button
+              type="button"
+              onClick={handleSubtractVolume}
+              className={styles.volumeButton}
+            >
+              -50&nbsp;ml
+            </button>
+          </div>
+        </TextField>
 
         <TextField id="remarks" label="General comments" error={errors.remarks?.message}>
           <p>Add any comments, for example if you experienced any difficulties with the sampling.</p>

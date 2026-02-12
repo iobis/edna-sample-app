@@ -22,11 +22,12 @@ export function useSamples() {
     loadSamples();
   }, [loadSamples]);
 
-  const createSample = useCallback(async (formData: SampleFormData): Promise<Sample> => {
+  const createSample = useCallback(async (formData: SampleFormData, submissionKey: string): Promise<Sample> => {
     const now = new Date();
     const sample: Sample = {
       id: uuidv4(),
       ...formData,
+      submissionKey,
       dateTime: new Date(formData.dateTime),
       synced: false,
       createdAt: now,

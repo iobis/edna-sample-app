@@ -5,11 +5,12 @@ import { v4 as uuidv4 } from 'uuid';
 /**
  * Save an image file to IndexedDB for a given sample
  */
-export async function saveImage(sampleId: string, file: File): Promise<SampleImage> {
+export async function saveImage(sampleId: string, file: File, submissionKey: string): Promise<SampleImage> {
   const now = new Date();
   const image: SampleImage = {
     id: uuidv4(),
     sampleId,
+    submissionKey,
     blob: file,
     filename: file.name,
     mimeType: file.type,

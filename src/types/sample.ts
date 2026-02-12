@@ -1,6 +1,7 @@
 export interface Sample {
   id: string; // UUID, internal database ID for tracking
   sampleId: string; // Official sample ID from printed kit label
+  submissionKey?: string; // Shared UUID linking sample and images
   contactName: string;
   contactEmail: string;
   dateTime: Date;
@@ -41,6 +42,7 @@ export interface SampleFormData {
 export interface SampleImage {
   id: string; // UUID
   sampleId: string; // Links to Sample.sampleId (official ID)
+  submissionKey?: string; // Shared UUID linking sample and images
   blob: Blob;
   filename: string;
   mimeType: string;
