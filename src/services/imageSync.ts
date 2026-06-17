@@ -21,10 +21,13 @@ export async function syncImage(image: SampleImage): Promise<ImageSyncResult> {
   }
 
   try {
-    // Create FormData with image and sampleId
     const formData = new FormData();
     formData.append('image', image.blob, image.filename);
-    formData.append('sampleId', image.sampleId);
+    formData.append('latitude', String(image.latitude));
+    formData.append('longitude', String(image.longitude));
+    if (image.sampleId) {
+      formData.append('sampleId', image.sampleId);
+    }
     if (image.submissionKey) {
       formData.append('submission_key', image.submissionKey);
     }

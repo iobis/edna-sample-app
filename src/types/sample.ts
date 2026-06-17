@@ -41,8 +41,10 @@ export interface SampleFormData {
 
 export interface SampleImage {
   id: string; // UUID
-  sampleId: string; // Links to Sample.sampleId (official ID)
+  sampleId?: string; // Links to Sample.sampleId when image is tied to a sample
   submissionKey?: string; // Shared UUID linking sample and images
+  latitude: number;
+  longitude: number;
   blob: Blob;
   filename: string;
   mimeType: string;
@@ -50,5 +52,11 @@ export interface SampleImage {
   synced: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ImageFormData {
+  latitude: number;
+  longitude: number;
+  coordinateUncertainty: number;
 }
 

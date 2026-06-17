@@ -6,7 +6,7 @@ import styles from './SyncStatus.module.css';
 
 interface SyncStatusProps {
   onError?: (message: string) => void;
-  onSuccess?: (syncedCount: number) => void;
+  onSuccess?: (syncedCount: number, type?: 'sample' | 'image') => void;
 }
 
 export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
@@ -14,6 +14,7 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
   const [syncing, setSyncing] = useState(false);
   const isOffline = useOffline();
   const previousQueuedRef = useRef<number>(0);
+  const previousQueuedImagesRef = useRef<number>(0);
   const isSyncingRef = useRef(false);
 
   const updateStats = useCallback(async () => {
@@ -36,7 +37,7 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
       
       // Report success/error for samples
       if (result.success && result.synced > 0 && onSuccess) {
-        onSuccess(result.synced);
+        onSuccess(result.synced, 'sample');
       } else if (!result.success && result.error && onError) {
         onError(result.error.message);
       }
@@ -45,9 +46,8 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
       if (!imageResult.success && imageResult.error && imageResult.synced === 0 && onError) {
         onError(imageResult.error.message);
       } else if (imageResult.success && imageResult.synced > 0 && onSuccess) {
-        // Optionally show success for images too, but don't duplicate if samples also succeeded
         if (!result.success || result.synced === 0) {
-          onSuccess(imageResult.synced);
+          onSuccess(imageResult.synced, 'image');
         }
       }
     } catch (error) {
@@ -64,19 +64,17 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
     return () => clearInterval(interval);
   }, [updateStats]);
 
-  // Auto-sync when a new sample is queued (queued count increases)
+  // Auto-sync when a new sample or image is queued
   useEffect(() => {
-    // Only sync if:
-    // - We're online
-    // - Not already syncing
-    // - Queued count increased (new sample was added)
-    // - There are actually queued samples
-    if (!isOffline && !isSyncingRef.current && stats.queued > previousQueuedRef.current && stats.queued > 0) {
+    const samplesQueued = stats.queued > previousQueuedRef.current && stats.queued > 0;
+    const imagesQueued = stats.queuedImages > previousQueuedImagesRef.current && stats.queuedImages > 0;
+
+    if (!isOffline && !isSyncingRef.current && (samplesQueued || imagesQueued)) {
       performSync();
     }
-    // Update the ref to track the previous queued count
     previousQueuedRef.current = stats.queued;
-  }, [stats.queued, isOffline, performSync]);
+    previousQueuedImagesRef.current = stats.queuedImages;
+  }, [stats.queued, stats.queuedImages, isOffline, performSync]);
 
   const handleSync = async () => {
     await performSync();

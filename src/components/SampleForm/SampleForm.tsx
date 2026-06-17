@@ -99,7 +99,13 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
       // If images were selected, save them to IndexedDB
       if (bagImage) {
         try {
-          await saveImage(sample.sampleId, bagImage, submissionKey);
+          await saveImage({
+            file: bagImage,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            sampleId: sample.sampleId,
+            submissionKey,
+          });
         } catch (imageError) {
           console.error('Error saving bag image:', imageError);
           // Continue even if image save fails - sample is already created
@@ -108,7 +114,13 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
 
       if (sheetImage) {
         try {
-          await saveImage(sample.sampleId, sheetImage, submissionKey);
+          await saveImage({
+            file: sheetImage,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            sampleId: sample.sampleId,
+            submissionKey,
+          });
         } catch (imageError) {
           console.error('Error saving sheet image:', imageError);
           // Continue even if image save fails - sample is already created
@@ -506,6 +518,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         <ImageCapture
           onImageChange={setSheetImage}
           value={sheetImage}
+          inputId="sheet-image-capture"
         />
       </div>
 
@@ -515,6 +528,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         <ImageCapture
           onImageChange={setBagImage}
           value={bagImage}
+          inputId="bag-image-capture"
         />
       </div>
 

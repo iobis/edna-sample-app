@@ -2,15 +2,26 @@ import { db } from './db';
 import { SampleImage } from '../types/sample';
 import { v4 as uuidv4 } from 'uuid';
 
+export interface SaveImageOptions {
+  file: File;
+  latitude: number;
+  longitude: number;
+  sampleId?: string;
+  submissionKey?: string;
+}
+
 /**
- * Save an image file to IndexedDB for a given sample
+ * Save an image file to IndexedDB, optionally linked to a sample
  */
-export async function saveImage(sampleId: string, file: File, submissionKey: string): Promise<SampleImage> {
+export async function saveImage(options: SaveImageOptions): Promise<SampleImage> {
+  const { file, latitude, longitude, sampleId, submissionKey } = options;
   const now = new Date();
   const image: SampleImage = {
     id: uuidv4(),
     sampleId,
     submissionKey,
+    latitude,
+    longitude,
     blob: file,
     filename: file.name,
     mimeType: file.type,
