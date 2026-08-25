@@ -5,6 +5,7 @@ export interface Sample {
   contactName: string;
   contactEmail: string;
   dateTime: Date;
+  utcOffsetMinutes?: number;
   volumeFiltered?: number; // milliliters
   waterTemperature?: number; // Celsius
   remarks?: string;

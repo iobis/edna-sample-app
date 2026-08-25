@@ -24,11 +24,13 @@ export function useSamples() {
 
   const createSample = useCallback(async (formData: SampleFormData, submissionKey: string): Promise<Sample> => {
     const now = new Date();
+    const dateTime = new Date(formData.dateTime);
     const sample: Sample = {
       id: uuidv4(),
       ...formData,
       submissionKey,
-      dateTime: new Date(formData.dateTime),
+      dateTime,
+      utcOffsetMinutes: -dateTime.getTimezoneOffset(),
       synced: false,
       createdAt: now,
       updatedAt: now,
