@@ -31,6 +31,8 @@ export function useSamples() {
       submissionKey,
       dateTime,
       utcOffsetMinutes: -dateTime.getTimezoneOffset(),
+      control: Boolean(formData.control),
+      replicate: formData.control ? undefined : formData.replicate,
       synced: false,
       createdAt: now,
       updatedAt: now,

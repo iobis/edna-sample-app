@@ -5,12 +5,14 @@ export interface Sample {
   contactName: string;
   contactEmail: string;
   dateTime: Date;
+  /** Minutes to add to UTC to get local sampling time (e.g. 120 for UTC+2). */
   utcOffsetMinutes?: number;
   volumeFiltered?: number; // milliliters
   waterTemperature?: number; // Celsius
   remarks?: string;
   environmentRemarks?: string;
   replicate?: number;
+  control?: boolean;
   site: string;
   locality: string;
   longitude: number;
@@ -32,6 +34,7 @@ export interface SampleFormData {
   remarks?: string;
   environmentRemarks?: string;
   replicate?: number;
+  control?: boolean;
   site: string;
   locality: string;
   longitude: number;
@@ -60,4 +63,3 @@ export interface ImageFormData {
   longitude: number;
   coordinateUncertainty: number;
 }
-

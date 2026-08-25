@@ -48,12 +48,20 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
       volumeFiltered: undefined,
       waterTemperature: undefined,
       coordinateUncertainty: undefined,
+      control: false,
     },
   });
 
   const latitude = watch('latitude');
   const longitude = watch('longitude');
   const uncertainty = watch('coordinateUncertainty');
+  const isControl = watch('control');
+
+  useEffect(() => {
+    if (isControl) {
+      setValue('replicate', undefined);
+    }
+  }, [isControl, setValue]);
 
   // Update form with location when available
   useEffect(() => {
@@ -149,6 +157,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         remarks: '',
         environmentRemarks: '',
         replicate: '' as any,
+        control: false,
         coordinateUncertainty: undefined,
       });
 
@@ -327,6 +336,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
             id="replicate"
             className={styles.select}
             defaultValue=""
+            disabled={!!isControl}
             {...register('replicate', {
               setValueAs: (value) => (value === '' ? undefined : Number(value)),
             })}
@@ -339,6 +349,18 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
             ))}
           </select>
         </TextField>
+        <p>Alternatively, mark this sample as a control sample.</p>
+        <label className={styles.toggleRow} htmlFor="control">
+          <input
+            id="control"
+            type="checkbox"
+            className={styles.toggleInput}
+            {...register('control')}
+          />
+          <span className={styles.toggleLabel}>
+            <span className={styles.toggleTitle}>Control sample</span>
+          </span>
+        </label>
 
         <div className={styles.locationSection}>
           <div className={styles.locationHeader}>
