@@ -12,6 +12,15 @@ import { db } from '../../services/db';
 import { v4 as uuidv4 } from 'uuid';
 import styles from './SampleForm.module.css';
 
+/** Format for `<input type="datetime-local">` using the device's local wall clock. */
+function localDateTimeInputValue(date: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  );
+}
+
 interface SampleFormProps {
   onSuccess?: () => void;
 }
@@ -35,7 +44,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
     reset,
   } = useForm<SampleFormData>({
     defaultValues: {
-      dateTime: new Date().toISOString().slice(0, 16), // Local datetime format
+      dateTime: localDateTimeInputValue(), // Local datetime for datetime-local input
       volumeFiltered: undefined,
       waterTemperature: undefined,
       coordinateUncertainty: undefined,
@@ -133,7 +142,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         contactEmail: data.contactEmail,
         site: data.site,
         locality: data.locality,
-        dateTime: new Date().toISOString().slice(0, 16),
+        dateTime: localDateTimeInputValue(),
         sampleId: '',
         volumeFiltered: '' as any,
         waterTemperature: '' as any,
