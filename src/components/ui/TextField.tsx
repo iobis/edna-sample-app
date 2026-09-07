@@ -15,8 +15,12 @@ export const TextField = React.forwardRef<HTMLDivElement, TextFieldProps>(
     <div className={styles.field} ref={ref}>
       {label && (
         <Label.Root className={styles.label} htmlFor={id}>
-          {label}
-          {required && <span className={styles.required}>*</span>}
+          <span className={styles.labelText}>{label}</span>
+          {required && (
+            <span className={styles.required} aria-hidden="true">
+              required
+            </span>
+          )}
         </Label.Root>
       )}
       {children}

@@ -563,6 +563,12 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
         />
       </div>
 
+      {!sheetImage && !bagImage && (
+        <div className={styles.warningMessage} role="status">
+          No photos selected. Consider adding a sampling sheet and bag photo before submitting.
+        </div>
+      )}
+
       <button
         type="submit"
         disabled={submitting}
