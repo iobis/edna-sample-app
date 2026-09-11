@@ -1,26 +1,39 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSyncStats, syncSamples, clearAllData, SyncStats } from '../../services/sync';
 import { syncAllImages } from '../../services/imageSync';
+import { pruneUnrecoverableImages } from '../../services/images';
 import { useOffline } from '../../hooks/useOffline';
 import styles from './SyncStatus.module.css';
 
 interface SyncStatusProps {
   onError?: (message: string) => void;
   onSuccess?: (syncedCount: number, type?: 'sample' | 'image') => void;
+  onInfo?: (message: string) => void;
 }
 
-export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
+export function SyncStatus({ onError, onSuccess, onInfo }: SyncStatusProps) {
   const [stats, setStats] = useState<SyncStats>({ synced: 0, queued: 0, syncedImages: 0, queuedImages: 0 });
   const [syncing, setSyncing] = useState(false);
   const isOffline = useOffline();
   const previousQueuedRef = useRef<number>(0);
   const previousQueuedImagesRef = useRef<number>(0);
   const isSyncingRef = useRef(false);
+  const pruneOnMountDoneRef = useRef(false);
 
   const updateStats = useCallback(async () => {
     const newStats = await getSyncStats();
     setStats(newStats);
   }, []);
+
+  const notifyPruned = useCallback(
+    (pruned: number) => {
+      if (pruned <= 0) return;
+      onInfo?.(
+        `Removed ${pruned} picture${pruned > 1 ? 's' : ''} that could no longer be uploaded. Re-take photos if needed. Your samples are already saved.`
+      );
+    },
+    [onInfo]
+  );
 
   const performSync = useCallback(async () => {
     if (isOffline || isSyncingRef.current) return;
@@ -32,8 +45,13 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
       const result = await syncSamples();
       await updateStats();
       
-      // Then sync images
+      // Then sync images (prunes empty blobs first)
       const imageResult = await syncAllImages();
+      await updateStats();
+
+      if (imageResult.pruned) {
+        notifyPruned(imageResult.pruned);
+      }
       
       // Report success/error for samples
       if (result.success && result.synced > 0 && onSuccess) {
@@ -42,13 +60,21 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
         onError(result.error.message);
       }
       
-      // Report image sync errors if any
-      if (!imageResult.success && imageResult.error && imageResult.synced === 0 && onError) {
+      // Samples OK but pictures failed — keep local data
+      if (
+        result.success &&
+        !imageResult.success &&
+        imageResult.error &&
+        imageResult.synced === 0 &&
+        onError
+      ) {
+        onError(
+          `${imageResult.error.message} Do not tap Clear data — queued pictures stay on this phone until Sync succeeds.`
+        );
+      } else if (!imageResult.success && imageResult.error && imageResult.synced === 0 && onError) {
         onError(imageResult.error.message);
       } else if (imageResult.success && imageResult.synced > 0 && onSuccess) {
-        if (!result.success || result.synced === 0) {
-          onSuccess(imageResult.synced, 'image');
-        }
+        onSuccess(imageResult.synced, 'image');
       }
     } catch (error) {
       // Silently fail - error handling is done in syncSamples and syncAllImages
@@ -56,13 +82,32 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
       isSyncingRef.current = false;
       setSyncing(false);
     }
-  }, [isOffline, updateStats, onSuccess, onError]);
+  }, [isOffline, updateStats, onSuccess, onError, notifyPruned]);
 
   useEffect(() => {
-    updateStats();
+    let cancelled = false;
+    (async () => {
+      if (!pruneOnMountDoneRef.current) {
+        pruneOnMountDoneRef.current = true;
+        try {
+          const pruned = await pruneUnrecoverableImages();
+          if (!cancelled && pruned > 0) {
+            notifyPruned(pruned);
+          }
+        } catch (error) {
+          console.error('Error pruning unrecoverable images:', error);
+        }
+      }
+      if (!cancelled) {
+        await updateStats();
+      }
+    })();
     const interval = setInterval(updateStats, 2000); // Update every 2 seconds
-    return () => clearInterval(interval);
-  }, [updateStats]);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [updateStats, notifyPruned]);
 
   // Auto-sync when a new sample or image is queued
   useEffect(() => {
@@ -90,7 +135,7 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
     if (!hasData) return;
 
     const confirmed = window.confirm(
-      'This will delete all locally stored samples and images on this device. This cannot be undone. Continue?'
+      'This will delete all locally stored samples and images on this device. Pictures that have not synced yet will be lost forever. Samples already on the server are kept, but you would need to re-take photos. Continue?'
     );
     if (!confirmed) return;
 
@@ -158,4 +203,3 @@ export function SyncStatus({ onError, onSuccess }: SyncStatusProps) {
     </div>
   );
 }
-

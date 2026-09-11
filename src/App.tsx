@@ -18,7 +18,8 @@ function App() {
       </header>
       <main className={styles.main}>
         <SyncStatus 
-          onError={(message) => showToast(message, 'error', 6000)} 
+          onError={(message) => showToast(message, 'error', 8000)}
+          onInfo={(message) => showToast(message, 'info', 8000)}
           onSuccess={(count, type) => {
             if (type === 'image') {
               showToast(`${count} image${count > 1 ? 's' : ''} synced successfully!`, 'success');

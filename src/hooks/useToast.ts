@@ -2,14 +2,14 @@ import { useState, useCallback } from 'react';
 
 interface ToastState {
   message: string;
-  type: 'success' | 'error';
+  type: 'success' | 'error' | 'info';
   duration?: number;
 }
 
 export function useToast() {
   const [toast, setToast] = useState<ToastState | null>(null);
 
-  const showToast = useCallback((message: string, type: 'success' | 'error' = 'success', duration?: number) => {
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success', duration?: number) => {
     setToast({ message, type, duration });
   }, []);
 

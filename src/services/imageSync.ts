@@ -1,15 +1,49 @@
 import { SampleImage } from '../types/sample';
-import { getUnsyncedImages, markImageAsSynced } from './images';
+import {
+  getUnsyncedImages,
+  isRecoverableImageBlob,
+  markImageAsSynced,
+  pruneUnrecoverableImages,
+} from './images';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://platform.ednaexpeditions.org/api';
 
 export interface ImageSyncResult {
   success: boolean;
   synced: number;
+  pruned?: number;
   error?: {
     status?: number;
     message: string;
   };
+}
+
+function imageUploadDiagnostics(image: SampleImage) {
+  const blob = image.blob;
+  return {
+    id: image.id,
+    size: image.size,
+    storedSize: blob instanceof Blob ? blob.size : null,
+    mimeType: image.mimeType,
+    blobType: blob instanceof Blob ? blob.type : typeof blob,
+    hasSubmissionKey: Boolean(image.submissionKey),
+    filename: image.filename,
+  };
+}
+
+async function readErrorMessage(response: Response, fallback: string): Promise<string> {
+  try {
+    const data = await response.json();
+    if (typeof data?.error === 'string' && data.error) {
+      return data.error;
+    }
+    if (data?.errors) {
+      return JSON.stringify(data.errors);
+    }
+  } catch {
+    // ignore non-JSON bodies
+  }
+  return fallback;
 }
 
 /**
@@ -20,9 +54,30 @@ export async function syncImage(image: SampleImage): Promise<ImageSyncResult> {
     return { success: false, synced: 0, error: { message: 'No internet connection' } };
   }
 
+  if (!isRecoverableImageBlob(image.blob)) {
+    console.warn('Image sync skipped: local image data missing or empty', imageUploadDiagnostics(image));
+    return {
+      success: false,
+      synced: 0,
+      error: {
+        message:
+          'Local image data is missing or empty and cannot be uploaded. Re-take the photo if needed. Your samples are already saved.',
+      },
+    };
+  }
+
   try {
+    console.info('Image sync uploading', imageUploadDiagnostics(image));
+
     const formData = new FormData();
-    formData.append('image', image.blob, image.filename);
+    const filename = image.filename || 'image.jpg';
+    const file =
+      image.blob instanceof File
+        ? image.blob
+        : new File([image.blob], filename, {
+            type: image.mimeType || image.blob.type || 'application/octet-stream',
+          });
+    formData.append('image', file, filename);
     formData.append('latitude', String(image.latitude));
     formData.append('longitude', String(image.longitude));
     if (image.sampleId) {
@@ -42,12 +97,16 @@ export async function syncImage(image: SampleImage): Promise<ImageSyncResult> {
 
     if (!response.ok) {
       const status = response.status;
+      const detail = await readErrorMessage(
+        response,
+        response.statusText || 'Unknown error'
+      );
       return {
         success: false,
         synced: 0,
         error: {
           status,
-          message: `Image upload failed (${status}): ${response.statusText || 'Unknown error'}, please contact helpdesk@obis.org if the error persists.`,
+          message: `Image upload failed (${status}): ${detail}. Your samples are already saved — do not clear local data. Tap Sync again or contact helpdesk@obis.org if this persists.`,
         },
       };
     }
@@ -76,10 +135,12 @@ export async function syncAllImages(): Promise<ImageSyncResult> {
     return { success: false, synced: 0, error: { message: 'No internet connection' } };
   }
 
+  const pruned = await pruneUnrecoverableImages();
+
   const unsyncedImages = await getUnsyncedImages();
 
   if (unsyncedImages.length === 0) {
-    return { success: true, synced: 0 };
+    return { success: true, synced: 0, pruned };
   }
 
   let syncedCount = 0;
@@ -97,8 +158,9 @@ export async function syncAllImages(): Promise<ImageSyncResult> {
   }
 
   return {
-    success: syncedCount > 0,
+    success: syncedCount > 0 || (pruned > 0 && !lastError),
     synced: syncedCount,
+    pruned,
     error: syncedCount === 0 ? lastError : undefined,
   };
 }

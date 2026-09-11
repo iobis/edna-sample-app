@@ -23,6 +23,12 @@ npm run dev
 npm run build
 ```
 
+## Tests
+
+```bash
+npm test
+```
+
 ## Environment Variables
 
 For local development, create a `.env` file to override the API endpoint:
