@@ -69,14 +69,40 @@ export async function syncImage(image: SampleImage): Promise<ImageSyncResult> {
   try {
     console.info('Image sync uploading', imageUploadDiagnostics(image));
 
-    const formData = new FormData();
+    // Always copy bytes out of IndexedDB into a fresh File. Restored File/Blob
+    // handles on iOS can report size > 0 but serialize as an empty request body
+    // (Content-Length: 0 with a multipart boundary) — which is what prod saw.
+    let buffer: ArrayBuffer;
+    try {
+      buffer = await image.blob.arrayBuffer();
+    } catch (readError) {
+      console.error('Image sync failed reading blob bytes', readError, imageUploadDiagnostics(image));
+      return {
+        success: false,
+        synced: 0,
+        error: {
+          message:
+            'Could not read local image bytes for upload. Re-take the photo if needed. Your samples are already saved.',
+        },
+      };
+    }
+    if (buffer.byteLength === 0) {
+      console.warn('Image sync skipped: blob arrayBuffer was empty', imageUploadDiagnostics(image));
+      return {
+        success: false,
+        synced: 0,
+        error: {
+          message:
+            'Local image data is missing or empty and cannot be uploaded. Re-take the photo if needed. Your samples are already saved.',
+        },
+      };
+    }
+
     const filename = image.filename || 'image.jpg';
-    const file =
-      image.blob instanceof File
-        ? image.blob
-        : new File([image.blob], filename, {
-            type: image.mimeType || image.blob.type || 'application/octet-stream',
-          });
+    const mimeType = image.mimeType || image.blob.type || 'application/octet-stream';
+    const file = new File([buffer], filename, { type: mimeType });
+
+    const formData = new FormData();
     formData.append('image', file, filename);
     formData.append('latitude', String(image.latitude));
     formData.append('longitude', String(image.longitude));
@@ -86,6 +112,12 @@ export async function syncImage(image: SampleImage): Promise<ImageSyncResult> {
     if (image.submissionKey) {
       formData.append('submission_key', image.submissionKey);
     }
+
+    console.info('Image sync FormData ready', {
+      ...imageUploadDiagnostics(image),
+      bufferBytes: buffer.byteLength,
+      fileSize: file.size,
+    });
 
     // Upload to API endpoint
     // Using POST /api/images with sampleId in FormData (alternative approach)
