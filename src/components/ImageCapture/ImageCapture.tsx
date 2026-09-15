@@ -128,7 +128,6 @@ function SingleImageCapture({
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="environment"
               onChange={handleFileChange}
               className={styles.fileInput}
               id={inputId}
