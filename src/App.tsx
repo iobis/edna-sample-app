@@ -10,6 +10,16 @@ import styles from './App.module.css';
 function App() {
   const { toast, showToast, hideToast } = useToast();
   const [submissionMode, setSubmissionMode] = useState<SubmissionMode>('sample');
+  // Keep visited panels mounted so form/photo state survives tab switches
+  const [visited, setVisited] = useState<Record<SubmissionMode, boolean>>({
+    sample: true,
+    image: false,
+  });
+
+  const handleModeChange = (mode: SubmissionMode) => {
+    setSubmissionMode(mode);
+    setVisited((prev) => (prev[mode] ? prev : { ...prev, [mode]: true }));
+  };
 
   return (
     <div className={styles.app}>
@@ -28,11 +38,19 @@ function App() {
             }
           }} 
         />
-        <SubmissionTabs active={submissionMode} onChange={setSubmissionMode} />
-        {submissionMode === 'sample' ? (
-          <SampleForm onSuccess={() => showToast('Sample queued successfully!', 'success')} />
-        ) : (
-          <ImageForm onSuccess={() => showToast('Images queued successfully!', 'success')} />
+        <SubmissionTabs active={submissionMode} onChange={handleModeChange} />
+        {visited.sample && (
+          <div hidden={submissionMode !== 'sample'}>
+            <SampleForm
+              active={submissionMode === 'sample'}
+              onSuccess={() => showToast('Sample queued successfully!', 'success')}
+            />
+          </div>
+        )}
+        {visited.image && (
+          <div hidden={submissionMode !== 'image'}>
+            <ImageForm onSuccess={() => showToast('Images queued successfully!', 'success')} />
+          </div>
         )}
       </main>
       {toast && (

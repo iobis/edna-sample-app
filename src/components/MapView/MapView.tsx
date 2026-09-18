@@ -17,19 +17,45 @@ interface MapViewProps {
   uncertainty: number; // meters
   onLocationChange?: (lat: number, lng: number) => void;
   editable?: boolean;
+  /** When the map was hidden (e.g. tab switch), become true again to fix tile sizing. */
+  active?: boolean;
 }
 
-function MapUpdater({ latitude, longitude }: { latitude: number; longitude: number }) {
+function MapUpdater({
+  latitude,
+  longitude,
+  active = true,
+}: {
+  latitude: number;
+  longitude: number;
+  active?: boolean;
+}) {
   const map = useMap();
   
   useEffect(() => {
     map.setView([latitude, longitude], map.getZoom());
   }, [latitude, longitude, map]);
 
+  useEffect(() => {
+    if (!active) return;
+    // After display:none, Leaflet needs a layout pass before tiles render correctly
+    const id = requestAnimationFrame(() => {
+      map.invalidateSize();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [active, map]);
+
   return null;
 }
 
-export function MapView({ latitude, longitude, uncertainty, onLocationChange, editable = false }: MapViewProps) {
+export function MapView({
+  latitude,
+  longitude,
+  uncertainty,
+  onLocationChange,
+  editable = false,
+  active = true,
+}: MapViewProps) {
   const markerRef = useRef<L.Marker>(null);
 
   useEffect(() => {
@@ -57,7 +83,7 @@ export function MapView({ latitude, longitude, uncertainty, onLocationChange, ed
         scrollWheelZoom={false}
         className={styles.map}
       >
-        <MapUpdater latitude={latitude} longitude={longitude} />
+        <MapUpdater latitude={latitude} longitude={longitude} active={active} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

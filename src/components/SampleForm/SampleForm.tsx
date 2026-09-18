@@ -23,9 +23,11 @@ function localDateTimeInputValue(date: Date = new Date()): string {
 
 interface SampleFormProps {
   onSuccess?: () => void;
+  /** When false the form is hidden (e.g. another tab is active). Used to refresh the map layout. */
+  active?: boolean;
 }
 
-export function SampleForm({ onSuccess }: SampleFormProps) {
+export function SampleForm({ onSuccess, active = true }: SampleFormProps) {
   const { location, loading: locationLoading, error: locationError, refresh: refreshLocation } = useLocation();
   const { createSample } = useSamples();
   const [submitting, setSubmitting] = useState(false);
@@ -452,6 +454,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
               uncertainty={uncertainty}
               onLocationChange={handleMapLocationChange}
               editable={true}
+              active={active}
             />
           )}
         </div>
