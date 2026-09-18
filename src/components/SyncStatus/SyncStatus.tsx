@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSyncStats, syncSamples, clearAllData, SyncStats } from '../../services/sync';
 import { syncAllImages } from '../../services/imageSync';
 import { pruneUnrecoverableImages } from '../../services/images';
+import { db } from '../../services/db';
 import { useOffline } from '../../hooks/useOffline';
 import styles from './SyncStatus.module.css';
 
@@ -11,8 +12,14 @@ interface SyncStatusProps {
   onInfo?: (message: string) => void;
 }
 
+function pluralize(count: number, singular: string, plural: string) {
+  return count === 1 ? singular : plural;
+}
+
 export function SyncStatus({ onError, onSuccess, onInfo }: SyncStatusProps) {
   const [stats, setStats] = useState<SyncStats>({ synced: 0, queued: 0, syncedImages: 0, queuedImages: 0 });
+  const [sampleIds, setSampleIds] = useState<string[]>([]);
+  const [showSampleIds, setShowSampleIds] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const isOffline = useOffline();
   const previousQueuedRef = useRef<number>(0);
@@ -21,8 +28,12 @@ export function SyncStatus({ onError, onSuccess, onInfo }: SyncStatusProps) {
   const pruneOnMountDoneRef = useRef(false);
 
   const updateStats = useCallback(async () => {
-    const newStats = await getSyncStats();
+    const [newStats, samples] = await Promise.all([
+      getSyncStats(),
+      db.samples.orderBy('createdAt').reverse().toArray(),
+    ]);
     setStats(newStats);
+    setSampleIds(samples.map((sample) => sample.sampleId));
   }, []);
 
   const notifyPruned = useCallback(
@@ -121,6 +132,12 @@ export function SyncStatus({ onError, onSuccess, onInfo }: SyncStatusProps) {
     previousQueuedImagesRef.current = stats.queuedImages;
   }, [stats.queued, stats.queuedImages, isOffline, performSync]);
 
+  useEffect(() => {
+    if (sampleIds.length === 0) {
+      setShowSampleIds(false);
+    }
+  }, [sampleIds.length]);
+
   const handleSync = async () => {
     await performSync();
   };
@@ -150,55 +167,76 @@ export function SyncStatus({ onError, onSuccess, onInfo }: SyncStatusProps) {
 
   const totalSamples = stats.synced + stats.queued;
   const totalImages = stats.syncedImages + stats.queuedImages;
-  const samplesNotSynced = totalSamples > 0 && stats.synced < totalSamples;
-  const imagesNotSynced = totalImages > 0 && stats.syncedImages < totalImages;
+  const samplesPending = stats.synced < totalSamples;
+  const imagesPending = stats.syncedImages < totalImages;
+  const hasData =
+    stats.synced > 0 ||
+    stats.queued > 0 ||
+    stats.syncedImages > 0 ||
+    stats.queuedImages > 0;
 
   return (
     <div className={styles.syncStatus}>
-      <div className={styles.header}>
-        <div className={styles.statusIndicator}>
-          <span className={`${styles.statusDot} ${isOffline ? styles.offline : styles.online}`} />
-          <span className={styles.statusText}>
-            {isOffline ? 'Offline' : 'Online'}
-          </span>
-        </div>
-        <div className={styles.actions}>
-          {!isOffline && (stats.queued > 0 || stats.queuedImages > 0) && (
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className={styles.syncButton}
-            >
-              {syncing ? 'Syncing...' : 'Sync'}
-            </button>
-          )}
-          {(stats.synced > 0 ||
-            stats.queued > 0 ||
-            stats.syncedImages > 0 ||
-            stats.queuedImages > 0) && (
+      <p className={styles.statusMessage}>
+        You are{' '}
+        <span className={`${styles.connectionStatus} ${isOffline ? styles.offline : styles.online}`}>
+          {isOffline ? 'offline' : 'online'}
+        </span>
+        .{' '}
+        <span className={`${styles.count} ${samplesPending ? styles.countPending : ''}`}>
+          {stats.synced}/{totalSamples}
+        </span>{' '}
+        {pluralize(totalSamples, 'sample', 'samples')} and{' '}
+        <span className={`${styles.count} ${imagesPending ? styles.countPending : ''}`}>
+          {stats.syncedImages}/{totalImages}
+        </span>{' '}
+        {pluralize(totalImages, 'image', 'images')} you registered have been successfully
+        submitted to our platform.
+        {isOffline && (
+          <> Reopen the app when your connection has been restored.</>
+        )}
+      </p>
+      {sampleIds.length > 0 && (
+        <div className={styles.sampleIdsSection}>
+          <p className={styles.sampleIdsPrompt}>
             <button
               type="button"
-              onClick={handleClearData}
-              className={styles.clearButton}
+              className={styles.sampleIdsToggle}
+              onClick={() => setShowSampleIds((open) => !open)}
+              aria-expanded={showSampleIds}
             >
-              Clear data
-            </button>
+              Click here
+            </button>{' '}
+            to {showSampleIds ? 'hide' : 'see'} the submitted sample identifiers.
+          </p>
+          {showSampleIds && (
+            <ul className={styles.sampleIdsList}>
+              {sampleIds.map((sampleId, index) => (
+                <li key={`${sampleId}-${index}`}>{sampleId}</li>
+              ))}
+            </ul>
           )}
         </div>
-      </div>
-      <div className={styles.stats}>
-        <div className={`${styles.stat} ${samplesNotSynced ? styles.statQueued : ''}`}>
-          <span className={styles.statValue}>
-            {stats.synced}/{totalSamples || 0}
-          </span>
-          <span className={styles.statLabel}>Synced samples</span>
-        </div>
-        <div className={`${styles.stat} ${imagesNotSynced ? styles.statQueued : ''}`}>
-          <span className={styles.statValue}>
-            {stats.syncedImages}/{totalImages || 0}
-          </span>
-          <span className={styles.statLabel}>Synced pictures</span>
-        </div>
+      )}
+      <div className={styles.actions}>
+        {!isOffline && (stats.queued > 0 || stats.queuedImages > 0) && (
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className={styles.syncButton}
+          >
+            {syncing ? 'Synchronizing...' : 'Synchronize'}
+          </button>
+        )}
+        {hasData && (
+          <button
+            type="button"
+            onClick={handleClearData}
+            className={styles.clearButton}
+          >
+            Clear data
+          </button>
+        )}
       </div>
     </div>
   );

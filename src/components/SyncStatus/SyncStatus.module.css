@@ -5,82 +5,83 @@
   margin-bottom: 1.5rem;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
+.statusMessage {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.55;
+  color: #4b5563;
+}
+
+.connectionStatus {
+  font-weight: 700;
+}
+
+.connectionStatus.online {
+  color: #16a34a;
+}
+
+.connectionStatus.offline {
+  color: #dc2626;
+}
+
+.count {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #16a34a;
+}
+
+.countPending {
+  color: #dc2626;
+}
+
+.sampleIdsSection {
+  margin-top: 0.75rem;
+}
+
+.sampleIdsPrompt {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+.sampleIdsToggle {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #2563eb;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sampleIdsToggle:hover {
+  color: #1d4ed8;
+}
+
+.sampleIdsList {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  color: #111827;
+  font-size: 1rem;
+  line-height: 1.5;
+  list-style-type: '-  ';
+}
+
+.sampleIdsList li {
+  font-variant-numeric: tabular-nums;
 }
 
 .actions {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 0.5rem;
+  margin-top: 0.75rem;
 }
 
-.statusIndicator {
+.actions:has(.syncButton) {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.statusDot.online {
-  background-color: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-}
-
-.statusDot.offline {
-  background-color: #ef4444;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-}
-
-.statusText {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #f3f4f6;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.statLabel {
-  font-size: 0.75rem;
-  /* color: #9ca3af; */
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.statValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
-  line-height: 1;
-}
-
-.statQueued .statValue {
-  color: #f5460b;
 }
 
 .syncButton {
@@ -138,16 +139,7 @@
     padding: 0.875rem;
   }
 
-  .stats {
-    gap: 1rem;
-  }
-
-  .statValue {
-    font-size: 1.25rem;
-  }
-
-  .statLabel {
-    font-size: 0.6875rem;
+  .statusMessage {
+    font-size: 1rem;
   }
 }
-
