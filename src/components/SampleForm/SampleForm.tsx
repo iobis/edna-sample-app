@@ -48,6 +48,7 @@ export function SampleForm({ onSuccess, active = true }: SampleFormProps) {
     defaultValues: {
       dateTime: localDateTimeInputValue(), // Local datetime for datetime-local input
       volumeFiltered: undefined,
+      filteringMethod: undefined,
       waterTemperature: undefined,
       coordinateUncertainty: undefined,
       control: false,
@@ -155,6 +156,7 @@ export function SampleForm({ onSuccess, active = true }: SampleFormProps) {
         dateTime: localDateTimeInputValue(),
         sampleId: '',
         volumeFiltered: '' as any,
+        filteringMethod: '' as any,
         waterTemperature: '' as any,
         remarks: '',
         environmentRemarks: '',
@@ -496,6 +498,21 @@ export function SampleForm({ onSuccess, active = true }: SampleFormProps) {
               -50&nbsp;ml
             </button>
           </div>
+        </TextField>
+
+        <TextField id="filteringMethod" label="Filtering method" error={errors.filteringMethod?.message}>
+          <select
+            id="filteringMethod"
+            className={styles.select}
+            defaultValue=""
+            {...register('filteringMethod', {
+              setValueAs: (value) => (value === '' ? undefined : value),
+            })}
+          >
+            <option value="">Not specified</option>
+            <option value="syringe">Syringe</option>
+            <option value="pump">Pump</option>
+          </select>
         </TextField>
 
         <TextField id="remarks" label="General comments" error={errors.remarks?.message}>

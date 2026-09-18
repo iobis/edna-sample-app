@@ -8,6 +8,8 @@ export interface Sample {
   /** Minutes to add to UTC to get local sampling time (e.g. 120 for UTC+2). */
   utcOffsetMinutes?: number;
   volumeFiltered?: number; // milliliters
+  /** How the sample was filtered. */
+  filteringMethod?: 'syringe' | 'pump';
   waterTemperature?: number; // Celsius
   remarks?: string;
   environmentRemarks?: string;
@@ -30,6 +32,7 @@ export interface SampleFormData {
   contactEmail: string;
   dateTime: string; // ISO string for form handling
   volumeFiltered?: number;
+  filteringMethod?: 'syringe' | 'pump';
   waterTemperature?: number;
   remarks?: string;
   environmentRemarks?: string;
