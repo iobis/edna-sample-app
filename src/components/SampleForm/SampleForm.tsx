@@ -545,7 +545,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Sampling sheet</h2>
-        <p>Take a photo of the completed sampling sheet.</p>
+        <p>Add a photo of the completed sampling sheet.</p>
         <ImageCapture
           onImageChange={setSheetImage}
           value={sheetImage}
@@ -555,7 +555,7 @@ export function SampleForm({ onSuccess }: SampleFormProps) {
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Sampling bag</h2>
-        <p>Take a photo of the sampling bag form.</p>
+        <p>Add a photo of the sampling bag form.</p>
         <ImageCapture
           onImageChange={setBagImage}
           value={bagImage}

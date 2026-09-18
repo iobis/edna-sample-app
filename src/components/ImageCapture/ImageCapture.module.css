@@ -24,7 +24,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   transition: all 0.2s;
 }
 
@@ -39,6 +38,41 @@
   height: 0;
   opacity: 0;
   overflow: hidden;
+}
+
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+}
+
+@media (min-width: 480px) {
+  .actionButtons {
+    flex-direction: row;
+  }
+}
+
+.actionButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  cursor: pointer;
+  flex: 1;
+  min-height: 88px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.2s;
+}
+
+.actionButton:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
 }
 
 .uploadLabel {
