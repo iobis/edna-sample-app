@@ -10,6 +10,7 @@ import { ImageCapture } from '../ImageCapture/ImageCapture';
 import { saveImage } from '../../services/images';
 import { db } from '../../services/db';
 import { v4 as uuidv4 } from 'uuid';
+import { sanitizeCoordinateDraft, toggleCoordinateDraft } from './coordinateInput';
 import styles from './SampleForm.module.css';
 
 /** Format for `<input type="datetime-local">` using the device's local wall clock. */
@@ -228,6 +229,37 @@ export function SampleForm({ onSuccess, active = true }: SampleFormProps) {
     normalizeNumberInput(e);
   };
 
+  // Latitude/longitude use the normal keyboard so "-" can be typed. A typed
+  // minus is kept and moved to the front of the number.
+  const handleCoordinateInput = (
+    e: React.ChangeEvent<HTMLInputElement> | React.FormEvent<HTMLInputElement>,
+  ) => {
+    const input = e.currentTarget;
+    const fieldName = input.name as 'latitude' | 'longitude';
+    const sanitized = sanitizeCoordinateDraft(input.value);
+    if (sanitized === input.value) return;
+
+    const cursor = input.selectionStart ?? sanitized.length;
+    const delta = input.value.length - sanitized.length;
+    input.value = sanitized;
+    setValue(fieldName, sanitized as unknown as number, { shouldValidate: false });
+    const nextCursor = Math.max(0, cursor - delta);
+    input.setSelectionRange(nextCursor, nextCursor);
+  };
+
+  const toggleCoordinateSign = (field: 'latitude' | 'longitude') => {
+    const input = document.getElementById(field);
+    if (!(input instanceof HTMLInputElement)) return;
+    const next = toggleCoordinateDraft(input.value);
+    setValue(field, next as unknown as number, {
+      shouldDirty: true,
+      shouldValidate: /^-?\d+(\.\d+)?$/.test(next),
+    });
+    input.focus();
+    const end = input.value.length;
+    input.setSelectionRange(end, end);
+  };
+
   const handleAddVolume = () => {
     const current = getValues('volumeFiltered');
     const base = typeof current === 'number' && !isNaN(current) ? current : 0;
@@ -387,41 +419,71 @@ export function SampleForm({ onSuccess, active = true }: SampleFormProps) {
 
           <div className={styles.coordinates}>
             <TextField id="latitude" label="Latitude" error={errors.latitude?.message} required>
-              <TextFieldInput
-                id="latitude"
-                type="number"
-                lang="en"
-                inputMode="decimal"
-                step="0.00001"
-                {...register('latitude', {
-                  required: 'Latitude is required',
-                  min: { value: -90, message: 'Latitude must be between -90 and 90' },
-                  max: { value: 90, message: 'Latitude must be between -90 and 90' },
-                  valueAsNumber: true,
-                  onChange: normalizeNumberInput,
-                })}
-                onInput={handleNumberInput}
-                placeholder="0.00000"
-              />
+              <div className={styles.coordinateRow}>
+                <button
+                  type="button"
+                  className={styles.signButton}
+                  onClick={() => toggleCoordinateSign('latitude')}
+                  aria-label="Toggle negative latitude"
+                >
+                  ±
+                </button>
+                <TextFieldInput
+                  id="latitude"
+                  type="text"
+                  lang="en"
+                  inputMode="text"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  {...register('latitude', {
+                    required: 'Latitude is required',
+                    min: { value: -90, message: 'Latitude must be between -90 and 90' },
+                    max: { value: 90, message: 'Latitude must be between -90 and 90' },
+                    validate: (value) =>
+                      (typeof value === 'number' && !Number.isNaN(value)) ||
+                      'Enter a valid latitude',
+                    valueAsNumber: true,
+                    onChange: handleCoordinateInput,
+                  })}
+                  onInput={handleCoordinateInput}
+                  placeholder="0.00000"
+                />
+              </div>
             </TextField>
 
             <TextField id="longitude" label="Longitude" error={errors.longitude?.message} required>
-              <TextFieldInput
-                id="longitude"
-                type="number"
-                lang="en"
-                inputMode="decimal"
-                step="0.00001"
-                {...register('longitude', {
-                  required: 'Longitude is required',
-                  min: { value: -180, message: 'Longitude must be between -180 and 180' },
-                  max: { value: 180, message: 'Longitude must be between -180 and 180' },
-                  valueAsNumber: true,
-                  onChange: normalizeNumberInput,
-                })}
-                onInput={handleNumberInput}
-                placeholder="0.00000"
-              />
+              <div className={styles.coordinateRow}>
+                <button
+                  type="button"
+                  className={styles.signButton}
+                  onClick={() => toggleCoordinateSign('longitude')}
+                  aria-label="Toggle negative longitude"
+                >
+                  ±
+                </button>
+                <TextFieldInput
+                  id="longitude"
+                  type="text"
+                  lang="en"
+                  inputMode="text"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  {...register('longitude', {
+                    required: 'Longitude is required',
+                    min: { value: -180, message: 'Longitude must be between -180 and 180' },
+                    max: { value: 180, message: 'Longitude must be between -180 and 180' },
+                    validate: (value) =>
+                      (typeof value === 'number' && !Number.isNaN(value)) ||
+                      'Enter a valid longitude',
+                    valueAsNumber: true,
+                    onChange: handleCoordinateInput,
+                  })}
+                  onInput={handleCoordinateInput}
+                  placeholder="0.00000"
+                />
+              </div>
             </TextField>
 
             <TextField id="coordinateUncertainty" label="Uncertainty (m)" error={errors.coordinateUncertainty?.message} required>

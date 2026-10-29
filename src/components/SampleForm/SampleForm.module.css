@@ -156,6 +156,44 @@
   gap: 0.5rem;
 }
 
+.coordinateRow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.coordinateRow > input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+.signButton {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #111827;
+  cursor: pointer;
+}
+
+.signButton:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.signButton:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .coordinates > * {
   min-width: 0; /* Prevent grid items from overflowing */
 }
